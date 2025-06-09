@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkarCasa Admin - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#667eea',
+                        'secondary': '#764ba2',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }        /* Estilos CSS personalizados removidos para usar classes Tailwind */        /* Classes section removidas - usando Tailwind */
+
+        .equipment-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .equipment-list {
+            margin-top: 2rem;
+        }
+
+        .equipment-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .equipment-item h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .equipment-item p {
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .equipment-item .price {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+            }
+              /* Estilos de container removidos para usar Tailwind */
+            
+            .equipment-form {
+                grid-template-columns: 1fr;
+            }
+        }        /* Estilos para as abas - removidos para consistência com outras páginas */
+
+        /* Estilos para galeria de produtos */
+        .products-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .product-info h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .product-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 0.5rem 0;
+        }
+
+        /* Estilos para filtros */
+        .filters-container {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #333;
+        }
+
+        /* Estilos para orçamento */
+        .quotation-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .quotation-section h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .quotation-products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .quotation-product-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 5px;
+            border: 2px solid #e1e1e1;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quotation-product-card:hover {
+            border-color: #667eea;
+        }
+
+        .quotation-product-card.selected {
+            border-color: #28a745;
+            background: #f0fff0;
+        }
+
+        .selected-products {
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e1e1e1;
+            border-radius: 5px;
+            padding: 1rem;
+            background: white;
+        }
+
+        .selected-product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quotation-summary {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0;
+        }
+
+        .summary-item.total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-top: 2px solid #e1e1e1;
+            padding-top: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .installment-section {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f0f8ff;
+            border-radius: 5px;
+        }
+
+        .installment-slider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .installment-slider input[type="range"] {
+            flex: 1;
+        }
+
+        .installment-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">    <nav class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-4 shadow-md flex items-center">
+        <a href="{{ url_for('admin_dashboard') }}" class="bg-white/30 px-4 py-2 rounded transition mr-4 font-bold"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('admin_products') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-boxes mr-2"></i> Produtos</a>
+        <a href="{{ url_for('admin_quotation') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-file-invoice mr-2"></i> Orçamento</a>
+        
+        <div class="ml-auto flex items-center">
+            {% if session.admin_user %}
+            <span class="bg-white/10 px-3 py-1 rounded-full mr-3 text-sm">
+                <i class="fas fa-user mr-1"></i> {{ session.admin_user.name }}
+            </span>
+            {% endif %}
+            <a href="{{ url_for('admin_logout') }}" class="hover:bg-red-500 px-4 py-2 rounded transition"><i class="fas fa-sign-out-alt mr-2"></i> Sair</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}                {% for category, message in messages %}
+                    <div class="p-4 mb-4 rounded-md {{ 'bg-red-100 text-red-700 border border-red-200' if category == 'error' else 'bg-green-100 text-green-700 border border-green-200' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}        <!-- Dashboard Content -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="text-5xl text-primary mb-4">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="text-3xl font-bold mb-2" id="contactCount">0</div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-1">Contatos</h3>
+                <p class="text-gray-500 text-sm">Total de contatos recebidos</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="text-5xl text-secondary mb-4">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <div class="text-3xl font-bold mb-2" id="pendingCount">0</div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-1">Pendentes</h3>
+                <p class="text-gray-500 text-sm">Contatos aguardando retorno</p>
+            </div>
+              <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="text-5xl text-emerald-500 mb-4">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="text-3xl font-bold mb-2" id="recentCount">0</div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-1">Recentes</h3>
+                <p class="text-gray-500 text-sm">Contatos nos últimos 7 dias</p>
+            </div>
+        </div>
+        
+        <!-- Contact List Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md mt-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Lista de Contatos</h2>
+            
+            <!-- Filter Controls -->
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="filter-status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="">Todos os Status</option>
+                        <option value="novo">Novos</option>
+                        <option value="em_analise">Em Análise</option>
+                        <option value="contatado">Contatado</option>
+                        <option value="orçamento_criado">Orçamento Criado</option>
+                        <option value="concluido">Concluído</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ordenar por</label>
+                    <select id="sort-by" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="created_at">Data de Cadastro</option>
+                        <option value="nome">Nome</option>
+                        <option value="status">Status</option>
+                    </select>
+                </div>
+                
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Direção</label>
+                    <select id="sort-direction" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="true">Mais Recentes</option>
+                        <option value="false">Mais Antigos</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-end">
+                    <button id="apply-filters" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition">
+                        <i class="fas fa-filter mr-1"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            
+            <div id="contactsList" class="space-y-4">
+                <!-- Contact items will be rendered here by JavaScript -->
+                <div class="text-center p-10 text-gray-500">
+                    <i class="fas fa-spinner fa-pulse text-3xl mb-3"></i>
+                    <p>Carregando contatos...</p>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-8">
+                <div class="text-sm text-gray-700">
+                    Mostrando <span id="showing-start">0</span> a <span id="showing-end">0</span> de <span id="total-items">0</span> contatos
+                </div>
+                <div class="flex space-x-1">
+                    <button id="prev-page" class="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="current-page-display" class="px-3 py-1 border border-gray-300 rounded-md bg-gray-100">1</span>
+                    <button id="next-page" class="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Details Modal -->
+        <div id="contactDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Detalhes do Contato</h2>
+                        <button class="close-modal text-gray-500 hover:text-gray-800">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="contactDetailContent">
+                        <!-- Contact details will be loaded here -->
+                    </div>
+                    
+                    <div class="flex justify-between mt-8">
+                        <div>
+                            <button id="updateContactStatusBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition mr-2">
+                                <i class="fas fa-sync-alt mr-1"></i> Atualizar Status
+                            </button>
+                        </div>                        <div>
+                            <button onclick="createQuotationForContact()" class="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded hover:opacity-90 transition">
+                                <i class="fas fa-file-invoice mr-1"></i> Criar Orçamento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+      <script>
+        let contacts = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let perPage = 10;
+        let currentContact = null;
+        
+        // Função para mostrar alertas
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            
+            if (type === 'error') {
+                alertDiv.className = 'p-4 mb-4 rounded-md bg-red-100 text-red-700 border border-red-200';
+            } else if (type === 'warning') {
+                alertDiv.className = 'p-4 mb-4 rounded-md bg-yellow-100 text-yellow-700 border border-yellow-200';
+            } else if (type === 'info') {
+                alertDiv.className = 'p-4 mb-4 rounded-md bg-blue-100 text-blue-700 border border-blue-200';
+            } else {
+                alertDiv.className = 'p-4 mb-4 rounded-md bg-green-100 text-green-700 border border-green-200';
+            }
+            
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Status de contato formatados para display
+        const statusLabels = {
+            'novo': { text: 'Novo', color: 'bg-blue-100 text-blue-800' },
+            'em_analise': { text: 'Em Análise', color: 'bg-yellow-100 text-yellow-800' },
+            'contatado': { text: 'Contatado', color: 'bg-purple-100 text-purple-800' },
+            'orçamento_criado': { text: 'Orçamento Criado', color: 'bg-indigo-100 text-indigo-800' },
+            'concluido': { text: 'Concluído', color: 'bg-green-100 text-green-800' },
+            'cancelado': { text: 'Cancelado', color: 'bg-red-100 text-red-800' }
+        };        // Carregar contatos do Supabase
+        async function loadContacts() {
+            try {
+                const status = document.getElementById('filter-status').value;
+                const sortBy = document.getElementById('sort-by').value;
+                const sortDesc = document.getElementById('sort-direction').value;
+                
+                const queryParams = new URLSearchParams({
+                    page: currentPage,
+                    per_page: perPage,
+                    sort_by: sortBy,
+                    sort_desc: sortDesc
+                });
+                
+                if (status) {
+                    queryParams.append('status', status);
+                }
+                
+                const url = `/api/contatos?${queryParams.toString()}`;
+                
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    contacts = data.contatos;
+                    
+                    // Atualizar paginação
+                    totalPages = data.pagination.total_pages;
+                    const total = data.pagination.total;
+                    const start = (currentPage - 1) * perPage + 1;
+                    const end = Math.min(currentPage * perPage, total);
+                    
+                    document.getElementById('showing-start').textContent = start;
+                    document.getElementById('showing-end').textContent = end;
+                    document.getElementById('total-items').textContent = total;
+                    document.getElementById('current-page-display').textContent = currentPage;
+                    
+                    // Habilitar/desabilitar botões de paginação
+                    document.getElementById('prev-page').disabled = currentPage === 1;
+                    document.getElementById('next-page').disabled = currentPage === totalPages;
+                    
+                    updateDashboard();
+                    renderContactList();
+                } else {
+                    console.error(`Erro na resposta: Status ${response.status}`);
+                    const errorText = await response.text();
+                    console.error(`Corpo da resposta de erro: ${errorText}`);
+                    showAlert('Erro ao carregar contatos', 'error');
+                }
+            } catch (error) {
+                console.error('Erro em loadContacts:', error);
+                showAlert('Erro de conexão ao carregar contatos', 'error');
+                
+                // Mostrar mensagem de erro na lista
+                document.getElementById('contactsList').innerHTML = `
+                    <div class="text-center p-10 text-red-500">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-3"></i>
+                        <p>Não foi possível carregar os contatos. Tente novamente mais tarde.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Carregar estatísticas do dashboard
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('/api/estatisticas/contatos');
+                if (response.ok) {
+                    const stats = await response.json();
+                    
+                    document.getElementById('contactCount').textContent = stats.total || 0;
+                    document.getElementById('pendingCount').textContent = stats.pendentes || 0;
+                    document.getElementById('recentCount').textContent = stats.recentes || 0;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }            // Renderizar lista de contatos
+        function renderContactList() {
+            const container = document.getElementById('contactsList');
+            
+            if (!contacts || contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-10 text-gray-500">
+                        <i class="fas fa-search text-4xl mb-3"></i>
+                        <p>Nenhum contato encontrado.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const contactsHtml = contacts.map((contact, index) => {
+                    return `
+                        <div class="bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-semibold text-lg">${contact.nome || 'Nome não disponível'}</h3>
+                                    <div class="text-sm text-gray-600">
+                                        <p><i class="fas fa-envelope mr-2"></i>${contact.email || 'Email não disponível'}</p>
+                                        <p><i class="fas fa-phone mr-2"></i>${contact.telefone || 'Telefone não disponível'}</p>
+                                        <p><i class="fas fa-clock mr-2"></i>${contact.created_at ? new Date(contact.created_at).toLocaleDateString('pt-BR', { 
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        }) : 'Data não disponível'}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium ${statusLabels[contact.status]?.color || 'bg-gray-100 text-gray-800'}">
+                                        ${statusLabels[contact.status]?.text || contact.status || 'Status não definido'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <p class="text-gray-700">${contact.mensagem || 'Sem mensagem'}</p>
+                            </div>
+                            
+                            <div class="flex justify-end mt-3 space-x-2">
+                                <button onclick="showContactDetails('${contact.id}')" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
+                                    <i class="fas fa-eye mr-1"></i> Detalhes
+                                </button>
+                                <button onclick="createQuotationForContact('${contact.id}')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">
+                                    <i class="fas fa-file-plus mr-1"></i> Criar Orçamento
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.innerHTML = contactsHtml;
+                
+            } catch (error) {
+                console.error("Erro em renderContactList:", error);
+                container.innerHTML = `
+                    <div class="text-center p-10 text-red-500">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-3"></i>
+                        <p>Erro ao renderizar contatos. Verifique o console.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Mostrar detalhes de um contato
+        async function showContactDetails(contactId) {
+            try {
+                // Buscar detalhes do contato
+                const response = await fetch(`/api/contatos/${contactId}`);
+                
+                if (!response.ok) {
+                    showAlert('Erro ao carregar detalhes do contato', 'error');
+                    return;
+                }
+                
+                currentContact = await response.json();
+                
+                // Popular modal com detalhes
+                const detailContent = document.getElementById('contactDetailContent');
+                
+                detailContent.innerHTML = `
+                    <div class="border-b pb-4 mb-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold">${currentContact.nome}</h3>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${statusLabels[currentContact.status]?.color || 'bg-gray-100 text-gray-800'}">
+                                ${statusLabels[currentContact.status]?.text || currentContact.status}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 mt-1">ID: ${currentContact.id}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <h4 class="font-semibold mb-2 text-gray-700">Informações de Contato</h4>
+                            <p><strong>Email:</strong> ${currentContact.email}</p>
+                            <p><strong>Telefone:</strong> ${currentContact.telefone}</p>
+                            <p><strong>Origem:</strong> ${currentContact.origem || 'Site'}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2 text-gray-700">Status</h4>
+                            <p><strong>Data de cadastro:</strong> ${new Date(currentContact.created_at).toLocaleDateString('pt-BR', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</p>
+                            <p><strong>Última atualização:</strong> ${new Date(currentContact.updated_at).toLocaleDateString('pt-BR', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</p>
+                            
+                            <div class="mt-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Alterar status:</label>
+                                <select id="update-status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
+                                    <option value="novo" ${currentContact.status === 'novo' ? 'selected' : ''}>Novo</option>
+                                    <option value="em_analise" ${currentContact.status === 'em_analise' ? 'selected' : ''}>Em Análise</option>
+                                    <option value="contatado" ${currentContact.status === 'contatado' ? 'selected' : ''}>Contatado</option>
+                                    <option value="orçamento_criado" ${currentContact.status === 'orçamento_criado' ? 'selected' : ''}>Orçamento Criado</option>
+                                    <option value="concluido" ${currentContact.status === 'concluido' ? 'selected' : ''}>Concluído</option>
+                                    <option value="cancelado" ${currentContact.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-2 text-gray-700">Mensagem</h4>
+                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                            <p>${currentContact.mensagem || 'Nenhuma mensagem enviada.'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-2 text-gray-700">Observações</h4>
+                        <textarea id="contact-notes" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" 
+                            rows="3" placeholder="Adicione observações sobre este contato...">${currentContact.observacoes || ''}</textarea>
+                    </div>
+                    
+                    <!-- Se já existir um orçamento, mostrar link -->
+                    ${currentContact.status === 'orçamento_criado' ? `
+                        <div class="bg-indigo-50 border border-indigo-200 rounded p-4 mb-6">
+                            <h4 class="font-semibold text-indigo-800 mb-2">Orçamento Criado</h4>
+                            <p>Este contato já possui um orçamento associado.</p>
+                            <button onclick="viewQuotation('${currentContact.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded mt-2 hover:bg-indigo-700 transition">
+                                <i class="fas fa-file-invoice mr-1"></i> Ver Orçamento
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                
+                // Mostrar modal
+                document.getElementById('contactDetailModal').classList.remove('hidden');
+                
+                // Buscar orçamentos se existirem
+                if (currentContact.status === 'orçamento_criado') {
+                    // Implementar lógica para buscar orçamentos
+                }
+            } catch (error) {
+                console.error('Erro ao mostrar detalhes do contato:', error);
+                showAlert('Erro ao carregar detalhes do contato', 'error');
+            }
+        }
+        
+        // Atualizar status de um contato
+        async function updateContactStatus() {
+            if (!currentContact) return;
+            
+            const newStatus = document.getElementById('update-status').value;
+            const observacoes = document.getElementById('contact-notes').value;
+            
+            try {
+                const response = await fetch(`/api/contatos/${currentContact.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        observacoes: observacoes
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert('Status do contato atualizado com sucesso!');
+                    
+                    // Fechar modal
+                    document.getElementById('contactDetailModal').classList.add('hidden');
+                    
+                    // Recarregar contatos
+                    await loadContacts();
+                } else {
+                    const error = await response.json();
+                    showAlert('Erro ao atualizar status: ' + error.error, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro de conexão ao atualizar status', 'error');
+            }
+        }
+        
+        function renderQuotation(cotacao) {
+            const quotationContent = `
+                <h4 class="text-xl font-semibold text-gray-800">Cotação LinkarCasa - ${cotacao.id}</h4>
+                <p class="mb-2"><strong>Data:</strong> ${new Date(cotacao.data).toLocaleDateString('pt-BR')}</p>
+                ${Object.keys(cotacao.filtros_aplicados).length > 0 ? `
+                    <p class="mb-2"><strong>Filtros aplicados:</strong> 
+                        ${Object.entries(cotacao.filtros_aplicados).map(([key, value]) => `${key}: ${value}`).join(', ')}
+                    </p>
+                ` : ''}
+                <hr class="my-4">
+                ${cotacao.produtos.map(eq => `
+                    <div class="flex justify-between items-center mb-2 p-3 bg-white rounded">
+                        <div class="flex-1">
+                            <strong>${eq.nome_produto}</strong><br>
+                            <span class="text-sm">${eq.categoria} > ${eq.classe} > ${eq.tipo}</span>
+                            ${eq.protocolo ? `<br><span class="text-sm">Protocolo: ${eq.protocolo}</span>` : ''}
+                        </div>
+                        <span class="font-bold text-green-600">R$ ${parseFloat(eq.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>
+                `).join('')}
+                <hr class="my-4">
+                <div class="flex justify-between font-bold text-lg bg-green-50 p-4 rounded">
+                    <span>Total (${cotacao.total_produtos} itens):</span>
+                    <span class="text-green-600">R$ ${cotacao.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>
+                <p class="mt-4 text-gray-500 text-sm">
+                    Cotação válida por 30 dias. Valores sujeitos a alteração sem aviso prévio.<br>
+                    <strong>LinkarCasa</strong> - Automação Residencial e Comercial
+                </p>
+            `;
+            
+            document.getElementById('quotationContent').innerHTML = quotationContent;
+            document.getElementById('quotationResult').style.display = 'block';
+            
+            // Salvar cotação atual para download/email
+            window.currentQuotation = cotacao;
+            
+            // Scroll para mostrar o resultado
+            document.getElementById('quotationResult').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function downloadQuotation() {
+            if (!window.currentQuotation) {
+                showAlert('Nenhuma cotação disponível para download.', 'error');
+                return;
+            }
+            
+            const cotacao = window.currentQuotation;
+            let content = `COTAÇÃO LINKARCASA - ${cotacao.id}\n`;
+            content += `Data: ${new Date(cotacao.data).toLocaleDateString('pt-BR')}\n`;
+            content += `\n===========================================\n\n`;
+            
+            cotacao.produtos.forEach(eq => {
+                content += `${eq.nome_produto}\n`;
+                content += `${eq.categoria} > ${eq.classe} > ${eq.tipo}\n`;
+                if (eq.protocolo) content += `Protocolo: ${eq.protocolo}\n`;
+                content += `Valor: R$ ${parseFloat(eq.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}\n`;
+                content += `\n-------------------------------------------\n\n`;
+            });
+            
+            content += `TOTAL (${cotacao.total_produtos} itens): R$ ${cotacao.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}\n\n`;
+            content += `Cotação válida por 30 dias.\nLinkarCasa - Automação Residencial e Comercial`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cotacao-linkarcasa-${cotacao.id}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function emailQuotation() {
+            if (!window.currentQuotation) {
+                showAlert('Nenhuma cotação disponível para envio.', 'error');
+                return;
+            }
+            
+            const email = prompt('Digite o email do cliente:');
+            if (!email) return;
+            
+            // Aqui você pode implementar o envio real por email
+            // Por enquanto, vamos apenas mostrar uma mensagem
+            showAlert(`Cotação seria enviada para: ${email}\n(Funcionalidade de email não implementada ainda)`);
+        }
+          // Atualizar dashboard com números
+        function updateDashboard() {
+            // Se os números já foram carregados pela API de estatísticas, não fazemos nada aqui
+            if (document.getElementById('contactCount').textContent !== '0') {
+                return;
+            }
+            
+            // Contadores básicos a partir dos dados carregados
+            if (contacts) {
+                document.getElementById('contactCount').textContent = contacts.length;
+                
+                // Contar contatos pendentes (novos ou em análise)
+                const pendingContacts = contacts.filter(c => 
+                    c.status === 'novo' || c.status === 'em_analise'
+                ).length;
+                document.getElementById('pendingCount').textContent = pendingContacts;
+                
+                // Contar contatos recentes (últimos 7 dias)
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                
+                const recentContacts = contacts.filter(c => 
+                    new Date(c.created_at) > oneWeekAgo
+                ).length;
+                document.getElementById('recentCount').textContent = recentContacts;
+            }
+        }        // Criar orçamento a partir de um contato - redirecionar para página de orçamento
+        function createQuotationForContact(contactId = null) {
+            // Usar o ID fornecido ou o contato atual
+            const targetContactId = contactId || (currentContact ? currentContact.id : null);
+            
+            if (!targetContactId) {
+                showAlert('Nenhum contato selecionado', 'error');
+                return;
+            }
+            
+            // Redirecionar para a página de orçamento com o ID do contato
+            window.location.href = `{{ url_for('admin_quotation') }}?contact_id=${targetContactId}`;
+        }// Atualizar status de um contato
+        async function updateContactStatus() {
+            if (!currentContact) return;
+            
+            const newStatus = document.getElementById('update-status').value;
+            const observacoes = document.getElementById('contact-notes').value;
+            
+            try {
+                const response = await fetch(`/api/contatos/${currentContact.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        observacoes: observacoes
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert('Status do contato atualizado com sucesso!');
+                    
+                    // Fechar modal
+                    document.getElementById('contactDetailModal').classList.add('hidden');
+                    
+                    // Recarregar contatos
+                    await loadContacts();
+                } else {
+                    const error = await response.json();
+                    showAlert('Erro ao atualizar status: ' + error.error, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro de conexão ao atualizar status', 'error');
+            }
+        }
+        
+        // Visualizar orçamento de um contato
+        async function viewQuotation(contactId) {
+            try {
+                // Buscar orçamento associado ao contato
+                const response = await fetch(`/api/orcamentos?contato_site_id=${contactId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.orcamentos && data.orcamentos.length > 0) {
+                        const orcamento = data.orcamentos[0];
+                        
+                        // Implementar visualização do orçamento
+                        showAlert('Visualização de orçamento a ser implementada');
+                        
+                        // Redirecionar para página de orçamento detalhado
+                        window.location.href = `/admin/quotation/${orcamento.id}`;
+                    } else {
+                        showAlert('Nenhum orçamento encontrado para este contato', 'warning');
+                    }
+                } else {
+                    showAlert('Erro ao buscar orçamento', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro de conexão ao buscar orçamento', 'error');
+            }
+        }        // Fechamento de modais
+        function setupModalClosers() {
+            const closeButtons = document.querySelectorAll('.close-modal');
+            
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const contactDetailModal = document.getElementById('contactDetailModal');
+                    if (contactDetailModal) {
+                        contactDetailModal.classList.add('hidden');
+                    }
+                });
+            });
+        }
+        
+        // Navegação de paginação
+        function setupPagination() {
+            document.getElementById('prev-page').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadContacts();
+                }
+            });
+            
+            document.getElementById('next-page').addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadContacts();
+                }
+            });
+        }
+        
+        // Aplicar filtros
+        function setupFilters() {
+            document.getElementById('apply-filters').addEventListener('click', () => {
+                currentPage = 1; // Reset to first page when filtering
+                loadContacts();
+            });
+        }
+        
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Configurar manipuladores de eventos
+            setupModalClosers();
+            setupPagination();
+            setupFilters();
+              // Configurar botões de ação
+            document.getElementById('updateContactStatusBtn').addEventListener('click', updateContactStatus);
+            
+            // Carregar dados iniciais
+            await loadDashboardStats();
+            await loadContacts();
+        });
+          // Main initialization
+          async function forceReloadContacts() {
+            // Limpar dados existentes
+            contacts = [];
+            
+            // Mostrar loading
+            document.getElementById('contactsList').innerHTML = `
+                <div class="text-center p-10">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+                    <p>Recarregando contatos...</p>
+                </div>
+            `;
+            
+            // Tentar carregar novamente
+            await loadContacts();
+        }
+    </script>
+</body>
+</html>

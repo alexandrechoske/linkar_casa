@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkarCasa Admin - Produtos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#667eea',
+                        'secondary': '#764ba2',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">    <nav class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-4 shadow-md flex items-center">
+        <a href="{{ url_for('admin_dashboard') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('admin_products') }}" class="bg-white/30 px-4 py-2 rounded transition mr-4 font-bold"><i class="fas fa-boxes mr-2"></i> Produtos</a>
+        <a href="{{ url_for('admin_quotation') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-file-invoice mr-2"></i> Orçamento</a>
+        
+        <div class="ml-auto flex items-center">
+            {% if session.admin_user %}
+            <span class="bg-white/10 px-3 py-1 rounded-full mr-3 text-sm">
+                <i class="fas fa-user mr-1"></i> {{ session.admin_user.name }}
+            </span>
+            {% endif %}
+            <a href="{{ url_for('admin_logout') }}" class="hover:bg-red-500 px-4 py-2 rounded transition"><i class="fas fa-sign-out-alt mr-2"></i> Sair</a>
+        </div>
+    </nav>
+    
+    <div class="container mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6 animate-fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-box-open text-primary mr-3"></i> Gerenciar Produtos
+            </h2>
+            <div class="flex flex-wrap items-center justify-between gap-4 mt-6">                <div class="flex gap-3">
+                    <button id="newBtn" class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg hover:shadow-lg transition shadow flex items-center font-medium">
+                        <i class="fas fa-plus mr-2"></i> Novo Produto
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="font-medium text-gray-700">Filtrar:</label>
+                    <select id="categoryFilter" class="border border-gray-300 rounded-lg px-4 py-2 bg-white shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50">
+                        <option value="">Todas as Categorias</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div id="formContainer" style="display:none;" class="bg-white rounded-lg shadow-lg p-6 mb-6 border border-gray-200 animate-slide-up">            <h3 id="formTitle" class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center">
+                <i class="fas fa-edit text-primary mr-2"></i> <span>Cadastrar Produto</span>
+            </h3>
+            
+            <div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Categoria*</label>
+                        <select id="category" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50">
+                            <option value="">Selecione</option>
+                            <option value="Luz">Luz</option>
+                            <option value="Rede">Rede</option>
+                            <option value="Segurança">Segurança</option>
+                            <option value="Energia">Energia</option>
+                            <option value="Mídia">Mídia</option>
+                        </select>
+                        <p class="text-xs text-gray-500">Categoria principal do produto</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Nome*</label>
+                        <input type="text" id="nome" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50" />
+                        <p class="text-xs text-gray-500">Nome comercial do produto</p>
+                    </div>                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Valor (R$)*</label>
+                        <input type="number" id="valor_brl" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50" oninput="calculateTotal()" />
+                        <p class="text-xs text-gray-500">Valor de venda sem taxas</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Impostos (R$)</label>
+                        <input type="number" id="impostos" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50" oninput="calculateTotal()" />
+                        <p class="text-xs text-gray-500">Valor dos impostos aplicados</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
+                        <input type="number" id="valor_total" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50 bg-gray-100" readonly />
+                        <p class="text-xs text-gray-500">Valor total com impostos (calculado automaticamente)</p>
+                    </div>                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Classe</label>
+                        <select id="classe" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50">
+                            <option value="">Selecione</option>
+                            <option value="Interruptor">Interruptor</option>
+                            <option value="Relé">Relé</option>
+                            <option value="Lâmpada">Lâmpada</option>
+                            <option value="Sensor">Sensor</option>
+                            <option value="Câmera">Câmera</option>
+                            <option value="Smart Speaker">Smart Speaker</option>
+                            <option value="Gateway">Gateway</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                        <p class="text-xs text-gray-500">Subgrupo do produto (ex: Interruptores)</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Tipo</label>
+                        <select id="tipo" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50">
+                            <option value="">Selecione</option>
+                            <option value="1 Canal">1 Canal</option>
+                            <option value="2 Canais">2 Canais</option>
+                            <option value="3 Canais">3 Canais</option>
+                            <option value="Dimmer">Dimmer</option>
+                            <option value="RGB">RGB</option>
+                            <option value="Movimento">Movimento</option>
+                            <option value="Temperatura">Temperatura</option>
+                            <option value="Umidade">Umidade</option>
+                            <option value="Com Neutro">Com Neutro</option>
+                            <option value="Sem Neutro">Sem Neutro</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                        <p class="text-xs text-gray-500">Tipo específico do produto</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Imagem URL</label>
+                        <input type="text" id="imagem_produto" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50" />
+                        <p class="text-xs text-gray-500">URL da imagem principal do produto</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Link da Loja</label>
+                        <input type="text" id="link" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50" />
+                        <p class="text-xs text-gray-500">Link para compra do produto</p>
+                    </div>                    <div class="space-y-2 col-span-full">
+                        <label class="block text-sm font-medium text-gray-700">Descrição</label>
+                        <textarea id="descricao" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"></textarea>
+                        <p class="text-xs text-gray-500">Descrição detalhada do produto</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Protocolo</label>
+                        <select id="protocolo" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50">
+                            <option value="">Selecione</option>
+                            <option value="Zigbee">Zigbee</option>
+                            <option value="Z-Wave">Z-Wave</option>
+                            <option value="Wi-Fi">Wi-Fi</option>
+                            <option value="Bluetooth">Bluetooth</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Tempo de Instalação (horas)</label>
+                        <input type="number" id="tempo_instalacao" step="0.5" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="cancelBtn" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center shadow-sm">
+                    <i class="fas fa-times mr-2"></i> Cancelar
+                </button>
+                <button id="saveBtn" class="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:shadow-lg transition flex items-center">
+                    <i class="fas fa-save mr-2"></i> Salvar
+                </button>
+            </div>
+        </div>        <!-- Estatísticas rápidas de produtos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-primary">
+                <h3 class="text-gray-500 text-sm uppercase font-semibold">Total de Produtos</h3>
+                <div class="flex items-center justify-between mt-2">
+                    <p class="text-2xl font-bold" id="totalProducts">0</p>
+                    <div class="bg-primary/10 p-3 rounded-full">
+                        <i class="fas fa-box text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-secondary">
+                <h3 class="text-gray-500 text-sm uppercase font-semibold">Categorias</h3>
+                <div class="flex items-center justify-between mt-2">
+                    <p class="text-2xl font-bold" id="totalCategories">0</p>
+                    <div class="bg-secondary/10 p-3 rounded-full">
+                        <i class="fas fa-tags text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-emerald-500">
+                <h3 class="text-gray-500 text-sm uppercase font-semibold">Valor Médio</h3>
+                <div class="flex items-center justify-between mt-2">
+                    <p class="text-2xl font-bold" id="avgPrice">R$ 0,00</p>
+                    <div class="bg-emerald-500/10 p-3 rounded-full">
+                        <i class="fas fa-dollar-sign text-emerald-500"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-amber-500">
+                <h3 class="text-gray-500 text-sm uppercase font-semibold">Último Cadastro</h3>
+                <div class="flex items-center justify-between mt-2">
+                    <p class="text-2xl font-bold" id="lastUpdated">—</p>
+                    <div class="bg-amber-500/10 p-3 rounded-full">
+                        <i class="fas fa-clock text-amber-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        
+        <!-- Mensagem de notificação -->
+        <div id="notification" class="fixed bottom-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20 opacity-0 flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="notificationText">Operação realizada com sucesso!</span>
+        </div>
+    </div>
+    <script>        let editId = null;
+        let allProducts = [];
+  
+        // Função para calcular o valor total automaticamente
+        function calculateTotal() {
+            const valorBrl = parseFloat(document.getElementById('valor_brl').value) || 0;
+            const impostos = parseFloat(document.getElementById('impostos').value) || 0;
+            const valorTotal = valorBrl + impostos;
+            
+            document.getElementById('valor_total').value = valorTotal.toFixed(2);
+        }
+        
+        // Função de notificação
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notification.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500');
+            
+            switch(type) {
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500');
+                    break;
+                case 'info':
+                    notification.classList.add('bg-blue-500');
+                    break;
+                default:
+                    notification.classList.add('bg-green-500');
+            }
+            
+            notificationText.textContent = message;
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            notification.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+        
+        async function fetchProducts() {
+            try {
+                const res = await fetch('/api/products'); 
+                const data = await res.json(); 
+                
+                // Atualizar métricas
+                document.getElementById('totalProducts').textContent = data.length;
+                
+                // Contar categorias únicas
+                const categories = [...new Set(data.map(p => p.categoria).filter(Boolean))];
+                document.getElementById('totalCategories').textContent = categories.length;
+                
+                // Calcular preço médio
+                if (data.length > 0) {
+                    const avgPrice = data.reduce((sum, p) => sum + parseFloat(p.valor_brl || 0), 0) / data.length;
+                    document.getElementById('avgPrice').textContent = `R$ ${avgPrice.toFixed(2)}`;
+                    
+                    // Data do último cadastro (assumimos que o último item da lista é o mais recente)
+                    if (data[0].created_at) {
+                        const date = new Date(data[0].created_at);
+                        document.getElementById('lastUpdated').textContent = date.toLocaleDateString('pt-BR');
+                    }
+                }
+                
+                return data;
+            } catch (error) {
+                showNotification('Erro ao carregar produtos!', 'error');
+                console.error('Erro ao carregar produtos:', error);
+                return [];
+            }
+        }
+        
+        function renderGallery(items) {            const g = document.getElementById('gallery'); 
+            g.innerHTML='';
+            
+            if(items.length===0) { 
+                g.innerHTML='<div class="col-span-full py-10 text-center"><div class="text-gray-400 text-6xl mb-4"><i class="fas fa-box-open"></i></div><p class="text-gray-500 text-xl">Nenhum produto encontrado.</p></div>'; 
+                return; 
+            }
+            
+            // Agrupar por categoria
+            const groupedItems = items.reduce((acc, item) => {
+                const category = item.categoria || 'Sem categoria';
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(item);
+                return acc;
+            }, {});
+            
+            // Renderizar por categoria
+            Object.keys(groupedItems).sort().forEach(category => {
+                // Cabeçalho da categoria
+                const header = document.createElement('div');
+                header.className = 'col-span-full mt-6 mb-2 border-b border-gray-200 pb-2 flex items-center justify-between';
+                header.innerHTML = `
+                    <div class="flex items-center">
+                        <h3 class="text-xl font-bold text-primary">${category}</h3>
+                        <span class="ml-3 bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full">${groupedItems[category].length} produtos</span>
+                    </div>
+                `;
+                g.appendChild(header);
+                
+                // Produtos da categoria
+                groupedItems[category].forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white rounded-lg overflow-hidden shadow hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col';
+                      // Preparar as badges para informações extras
+                    let classeInfo = p.classe ? `<span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">${p.classe}</span>` : '';
+                    let protocoloInfo = p.protocolo ? `<span class="bg-secondary/10 text-secondary text-xs px-2 py-1 rounded-full">${p.protocolo}</span>` : '';
+                    
+                    div.innerHTML = `
+                        <div class="relative">
+                            <img src='${p.imagem_produto || "https://via.placeholder.com/300"}' class='w-full h-48 object-cover' alt="${p.nome_produto}">
+                            <div class="absolute top-2 right-2 flex flex-col gap-2 items-end">
+                                ${classeInfo}
+                            </div>
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col">
+                            <h4 class='text-lg font-semibold mb-1 flex-grow-0 line-clamp-1'>${p.nome_produto}</h4>
+                            <p class='text-gray-500 text-sm mb-3 flex-grow line-clamp-2'>${p.descricao || 'Sem descrição'}</p>
+                            
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${protocoloInfo}
+                            </div>
+                              <div class="flex items-center justify-between mt-auto">
+                                <div class="text-right">
+                                    ${p.valor_total && p.valor_total !== p.valor_brl ? 
+                                        `<p class='text-gray-500 text-sm line-through'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>
+                                         <p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_total || 0).toFixed(2)}</p>` :
+                                        `<p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>`
+                                    }
+                                </div>
+                                <div class="flex gap-1">
+                                    <button onclick='onEdit("${p.id}")' class='text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-full transition'>
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick='onDelete("${p.id}")' class='text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition'>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    g.appendChild(div);
+                });
+            });
+        }
+        function populateCategoryFilter(items) {
+            const select = document.getElementById('categoryFilter');
+            const cats = [...new Set(items.map(p=>p.categoria).filter(Boolean))];
+            cats.forEach(c=>{
+                const opt = document.createElement('option'); opt.value=c; opt.textContent=c; select.appendChild(opt);
+            });
+            select.onchange = ()=>{
+                const sel = select.value;
+                const filtered = sel? allProducts.filter(p=>p.categoria===sel) : allProducts;
+                renderGallery(filtered);
+            };
+        }        async function load() { 
+            try {
+                allProducts = await fetchProducts();
+                populateCategoryFilter(allProducts);
+                renderGallery(allProducts);
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                showNotification('Erro ao carregar produtos', 'error');
+            }
+        }
+        
+        document.getElementById('newBtn').onclick = () => { 
+            resetForm(); // Limpa o formulário
+            document.getElementById('formContainer').style.display = 'block'; 
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus text-primary mr-2"></i> <span>Cadastrar Produto</span>';
+        };// CSV import button removed
+        
+        // Botão Cancelar limpa o formulário e o esconde
+        document.getElementById('cancelBtn').onclick = () => { 
+            document.getElementById('formContainer').style.display = 'none'; 
+            resetForm();
+        };        // Função para resetar o formulário
+        function resetForm() {
+            // Campos básicos
+            document.getElementById('category').value = '';
+            document.getElementById('nome').value = '';
+            document.getElementById('valor_brl').value = '';
+            document.getElementById('impostos').value = '';
+            document.getElementById('valor_total').value = '';
+            document.getElementById('link').value = '';
+            document.getElementById('imagem_produto').value = '';
+            document.getElementById('descricao').value = '';
+            document.getElementById('classe').value = '';
+            document.getElementById('tipo').value = '';
+              // Campos de especificações
+            document.getElementById('protocolo').value = '';
+            document.getElementById('tempo_instalacao').value = '';
+            
+            // Reset do ID de edição
+            editId = null;
+        }
+        
+        // Botão Salvar
+        document.getElementById('saveBtn').onclick = async () => {
+            // Validação básica
+            if (!document.getElementById('category').value) {
+                showNotification('Categoria é obrigatória!', 'warning');
+                return;
+            }
+            if (!document.getElementById('nome').value) {
+                showNotification('Nome do produto é obrigatório!', 'warning');
+                return;
+            }
+            if (!document.getElementById('valor_brl').value) {
+                showNotification('Valor do produto é obrigatório!', 'warning');
+                return;
+            }
+            
+            try {                // Construção do objeto de produto com todos os campos
+                const payload = { 
+                    // Informações Básicas
+                    categoria: document.getElementById('category').value, 
+                    nome_produto: document.getElementById('nome').value, 
+                    valor_brl: document.getElementById('valor_brl').value,
+                    impostos: document.getElementById('impostos').value || null,
+                    valor_total: document.getElementById('valor_total').value || null,
+                    link: document.getElementById('link').value, 
+                    imagem_produto: document.getElementById('imagem_produto').value, 
+                    descricao: document.getElementById('descricao').value,
+                    classe: document.getElementById('classe').value,
+                    tipo: document.getElementById('tipo').value,
+                    
+                    // Especificações Técnicas
+                    protocolo: document.getElementById('protocolo').value,
+                    tempo_instalacao: document.getElementById('tempo_instalacao').value || null
+                };
+                
+                let response;
+                if (editId) { 
+                    response = await fetch(`/api/products/${editId}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Produto atualizado com sucesso!');
+                } else { 
+                    response = await fetch('/api/products', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
+                    }); 
+                    showNotification('Produto cadastrado com sucesso!');
+                }
+                
+                if (!response.ok) {
+                    throw new Error('Erro na operação');
+                }
+                
+                document.getElementById('formContainer').style.display = 'none'; 
+                load();
+            } catch (error) {
+                console.error('Erro ao salvar produto:', error);
+                showNotification('Erro ao salvar produto', 'error');
+            }
+        };
+        
+        // Função de edição
+        async function onEdit(id) { 
+            try {
+                editId = id; 
+                const items = await fetchProducts(); 
+                const p = items.find(x => x.id === id);
+                
+                if (!p) {
+                    showNotification('Produto não encontrado', 'error');
+                    return;
+                }
+                
+                // Atualizar título do formulário
+                document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit text-primary mr-2"></i> <span>Editar Produto</span>';
+                document.getElementById('formContainer').style.display = 'block';
+                  // Preencher campos básicos
+                document.getElementById('category').value = p.categoria || '';
+                document.getElementById('nome').value = p.nome_produto || '';
+                document.getElementById('valor_brl').value = p.valor_brl || '';
+                document.getElementById('impostos').value = p.impostos || '';
+                document.getElementById('valor_total').value = p.valor_total || '';
+                document.getElementById('link').value = p.link || '';
+                document.getElementById('imagem_produto').value = p.imagem_produto || '';
+                document.getElementById('descricao').value = p.descricao || '';
+                document.getElementById('classe').value = p.classe || '';
+                document.getElementById('tipo').value = p.tipo || '';                  // Preencher campos de especificações
+                document.getElementById('protocolo').value = p.protocolo || '';
+                document.getElementById('tempo_instalacao').value = p.tempo_instalacao || '';
+            } catch (error) {
+                console.error('Erro ao carregar produto para edição:', error);
+                showNotification('Erro ao carregar produto', 'error');
+            }
+        }
+        
+        // Função de exclusão
+        async function onDelete(id) { 
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+            
+            try {
+                const response = await fetch(`/api/products/${id}`, {method: 'DELETE'});
+                if (response.ok) {
+                    showNotification('Produto excluído com sucesso');
+                    load();
+                } else {
+                    throw new Error('Erro ao excluir produto');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir produto:', error);
+                showNotification('Erro ao excluir produto', 'error');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', load);
+    </script>
+</body>
+</html>

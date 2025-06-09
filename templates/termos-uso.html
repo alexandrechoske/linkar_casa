@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termos de Uso - LinkarCasa</title>
+    <meta name="description" content="Termos de Uso da LinkarCasa - Condições para utilização dos nossos serviços">
+    
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'purple-deep': '#2D1B69',
+                        'blue-electric': '#0066FF',
+                        'cyan-flow': '#00D4AA',
+                        'gray-charcoal': '#2C3E50',
+                        'cream-soft': '#FDFCF8'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-gray-900 text-white">
+    <!-- Header/Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-gray-900/95 backdrop-blur-sm border-b border-purple-deep/20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <img src="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}" alt="LinkarCasa" class="w-10 h-10">
+                    <span class="text-2xl font-bold bg-gradient-to-r from-cyan-flow to-blue-electric bg-clip-text text-transparent">LinkarCasa</span>
+                </div>
+                
+                <div class="flex items-center space-x-8">
+                    <a href="{{ url_for('index') }}" class="text-gray-300 hover:text-cyan-flow transition-colors">
+                        <i class="fas fa-home mr-2"></i>Voltar ao Início
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-16">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                    <span class="bg-gradient-to-r from-cyan-flow to-blue-electric bg-clip-text text-transparent">Termos de Uso</span>
+                </h1>
+                <p class="text-gray-300 text-lg">Última atualização: 7 de junho de 2025</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-700 space-y-8">
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">1. Aceitação dos Termos</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Ao utilizar os serviços da LinkarCasa, você concorda com estes Termos de Uso. 
+                        Se não concordar com qualquer parte destes termos, não utilize nossos serviços.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">2. Descrição dos Serviços</h2>
+                    <p class="text-gray-300 leading-relaxed mb-4">
+                        A LinkarCasa oferece serviços de automação residencial e comercial, incluindo:
+                    </p>
+                    <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                        <li>• Infraestrutura gerenciada de Home Assistant na nuvem</li>
+                        <li>• Instalação e configuração de dispositivos Zigbee</li>
+                        <li>• Acesso remoto personalizado via domínio exclusivo</li>
+                        <li>• Suporte técnico e manutenção</li>
+                        <li>• Configuração de automações personalizadas</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">3. Cadastro e Conta do Usuário</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">3.1 Elegibilidade</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Nossos serviços são destinados a maiores de 18 anos ou empresas juridicamente constituídas.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">3.2 Informações Precisas</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Você deve fornecer informações verdadeiras, precisas e atualizadas durante o cadastro e manter 
+                                essas informações atualizadas.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">3.3 Segurança da Conta</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Você é responsável por manter a confidencialidade das credenciais de acesso e por todas as 
+                                atividades realizadas em sua conta.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">4. Uso Aceitável</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">4.1 Uso Permitido</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Os serviços devem ser utilizados apenas para automação residencial e comercial legítima, 
+                                conforme suas funcionalidades destinadas.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">4.2 Uso Proibido</h3>
+                            <p class="text-gray-300 leading-relaxed mb-4">É expressamente proibido:</p>
+                            <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                                <li>• Usar os serviços para atividades ilegais</li>
+                                <li>• Tentar acessar sistemas não autorizados</li>
+                                <li>• Interferir no funcionamento dos serviços</li>
+                                <li>• Compartilhar credenciais de acesso</li>
+                                <li>• Fazer engenharia reversa dos sistemas</li>
+                                <li>• Usar os serviços para spam ou atividades maliciosas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">5. Pagamentos e Cancelamentos</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">5.1 Pagamentos</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Os pagamentos devem ser realizados conforme o plano contratado. Atrasos podem resultar em 
+                                suspensão temporária dos serviços.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">5.2 Cancelamento</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Você pode cancelar os serviços a qualquer momento. O cancelamento entrará em vigor no final 
+                                do período de cobrança atual.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">5.3 Reembolsos</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Reembolsos serão analisados caso a caso, considerando o tempo de uso e as circunstâncias específicas.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">6. Disponibilidade e Suporte</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">6.1 Disponibilidade</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Nos esforçamos para manter os serviços disponíveis 24/7, mas não garantimos disponibilidade 
+                                ininterrupta devido a manutenções, atualizações ou fatores externos.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">6.2 Suporte Técnico</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Oferecemos suporte técnico através dos canais oficiais durante horário comercial, 
+                                com atendimento de emergência disponível conforme o plano contratado.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">7. Propriedade Intelectual</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Todos os direitos de propriedade intelectual relacionados aos serviços LinkarCasa permanecem 
+                        conosco ou de nossos licenciadores. Você recebe apenas uma licença limitada para usar os serviços.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">8. Limitação de Responsabilidade</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        A LinkarCasa não será responsável por danos indiretos, incidentais, especiais ou consequenciais 
+                        decorrentes do uso ou impossibilidade de uso dos serviços, exceto nos casos previstos em lei.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">9. Modificações dos Termos</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Podemos modificar estes termos periodicamente. Alterações significativas serão notificadas 
+                        com antecedência razoável. O uso continuado dos serviços após as modificações constitui aceitação.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">10. Lei Aplicável e Foro</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Estes termos são regidos pelas leis brasileiras. Qualquer disputa será resolvida no foro da 
+                        comarca da sede da LinkarCasa, salvo disposição legal em contrário.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">11. Contato</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Para dúvidas sobre estes Termos de Uso:
+                    </p>
+                    <div class="mt-4 p-4 bg-gray-700 rounded-lg">
+                        <p class="text-white font-semibold">LinkarCasa</p>
+                        <p class="text-gray-300">E-mail: linkarcasa.automacoes@gmail.com</p>
+                        <p class="text-gray-300">Suporte: Através dos canais oficiais de atendimento</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800 py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-6">
+                    <img src="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}" alt="LinkarCasa" class="w-10 h-10">
+                    <span class="text-2xl font-bold bg-gradient-to-r from-cyan-flow to-blue-electric bg-clip-text text-transparent">LinkarCasa</span>
+                </div>
+                
+                <div class="text-gray-500 text-sm">
+                    <p>&copy; 2025 LinkarCasa. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

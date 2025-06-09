@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade - LinkarCasa</title>
+    <meta name="description" content="Política de Privacidade da LinkarCasa - Como protegemos seus dados pessoais">
+    
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'purple-deep': '#2D1B69',
+                        'blue-electric': '#0066FF',
+                        'cyan-flow': '#00D4AA',
+                        'gray-charcoal': '#2C3E50',
+                        'cream-soft': '#FDFCF8'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-gray-900 text-white">
+    <!-- Header/Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-gray-900/95 backdrop-blur-sm border-b border-purple-deep/20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <img src="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}" alt="LinkarCasa" class="w-10 h-10">
+                    <span class="text-2xl font-bold bg-gradient-to-r from-cyan-flow to-blue-electric bg-clip-text text-transparent">LinkarCasa</span>
+                </div>
+                
+                <div class="flex items-center space-x-8">
+                    <a href="{{ url_for('index') }}" class="text-gray-300 hover:text-cyan-flow transition-colors">
+                        <i class="fas fa-home mr-2"></i>Voltar ao Início
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-16">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                    <span class="bg-gradient-to-r from-cyan-flow to-blue-electric bg-clip-text text-transparent">Política de Privacidade</span>
+                </h1>
+                <p class="text-gray-300 text-lg">Última atualização: 7 de junho de 2025</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-700 space-y-8">
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">1. Introdução</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        A LinkarCasa está comprometida em proteger sua privacidade e dados pessoais. Esta Política de Privacidade 
+                        explica como coletamos, usamos, armazenamos e protegemos suas informações quando você utiliza nossos serviços 
+                        de automação residencial e comercial.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">2. Informações que Coletamos</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">2.1 Informações Pessoais</h3>
+                            <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                                <li>• Nome completo</li>
+                                <li>• Endereço de e-mail</li>
+                                <li>• Número de telefone</li>
+                                <li>• Endereço físico (para instalação dos equipamentos)</li>
+                                <li>• Informações de pagamento (processadas por terceiros seguros)</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-2">2.2 Dados Técnicos</h3>
+                            <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                                <li>• Logs de acesso ao sistema</li>
+                                <li>• Configurações de dispositivos</li>
+                                <li>• Dados de uso dos dispositivos conectados</li>
+                                <li>• Informações de rede (IP, localização aproximada)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">3. Como Utilizamos suas Informações</h2>
+                    <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                        <li>• Fornecer e manter nossos serviços de automação</li>
+                        <li>• Configurar e personalizar sua experiência</li>
+                        <li>• Processar pagamentos e gerenciar sua conta</li>
+                        <li>• Fornecer suporte técnico</li>
+                        <li>• Melhorar nossos serviços</li>
+                        <li>• Comunicar atualizações importantes</li>
+                        <li>• Cumprir obrigações legais</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">4. Compartilhamento de Informações</h2>
+                    <p class="text-gray-300 leading-relaxed mb-4">
+                        Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto:
+                    </p>
+                    <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                        <li>• Com prestadores de serviços que nos auxiliam (processamento de pagamentos, hospedagem)</li>
+                        <li>• Quando requerido por lei ou autoridade competente</li>
+                        <li>• Para proteger direitos, propriedade ou segurança</li>
+                        <li>• Com seu consentimento expresso</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">5. Segurança dos Dados</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Implementamos medidas de segurança robustas para proteger suas informações, incluindo criptografia, 
+                        controles de acesso, monitoramento contínuo e backup regular dos dados. Nossos servidores são hospedados 
+                        em data centers seguros com certificações de segurança internacionais.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">6. Seus Direitos</h2>
+                    <p class="text-gray-300 leading-relaxed mb-4">Conforme a LGPD, você tem direito a:</p>
+                    <ul class="text-gray-300 leading-relaxed space-y-2 ml-4">
+                        <li>• Acessar seus dados pessoais</li>
+                        <li>• Corrigir dados incompletos ou inexatos</li>
+                        <li>• Solicitar a exclusão de dados desnecessários</li>
+                        <li>• Revogar consentimento</li>
+                        <li>• Portabilidade dos dados</li>
+                        <li>• Informações sobre uso e compartilhamento</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">7. Retenção de Dados</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Mantemos seus dados pessoais apenas pelo tempo necessário para cumprir as finalidades descritas nesta política, 
+                        ou conforme exigido por lei. Dados técnicos podem ser mantidos por período maior para fins de melhoria do serviço.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">8. Alterações nesta Política</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos sobre mudanças significativas 
+                        por e-mail ou através de aviso em nosso site.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-cyan-flow mb-4">9. Contato</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Para questões sobre esta Política de Privacidade ou exercer seus direitos, entre em contato:
+                    </p>
+                    <div class="mt-4 p-4 bg-gray-700 rounded-lg">
+                        <p class="text-white font-semibold">LinkarCasa</p>
+                        <p class="text-gray-300">E-mail: linkarcasa.automacoes@gmail.com</p>
+                        <p class="text-gray-300">Encarregado de Proteção de Dados: DPO LinkarCasa</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800 py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-6">
+                    <img src="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}" alt="LinkarCasa" class="w-10 h-10">
+                    <span class="text-2xl font-bold bg-gradient-to-r from-cyan-flow to-blue-electric bg-clip-text text-transparent">LinkarCasa</span>
+                </div>
+                
+                <div class="text-gray-500 text-sm">
+                    <p>&copy; 2025 LinkarCasa. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkarCasa Admin - Orçamento</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#667eea',
+                        'secondary': '#764ba2',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">    <nav class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-4 shadow-md flex items-center">
+        <a href="{{ url_for('admin_dashboard') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('admin_products') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-boxes mr-2"></i> Produtos</a>
+        <a href="{{ url_for('admin_quotation') }}" class="bg-white/30 px-4 py-2 rounded transition mr-4 font-bold"><i class="fas fa-file-invoice mr-2"></i> Orçamento</a>
+        
+        <div class="ml-auto flex items-center">
+            {% if session.admin_user %}
+            <span class="bg-white/10 px-3 py-1 rounded-full mr-3 text-sm">
+                <i class="fas fa-user mr-1"></i> {{ session.admin_user.name }}
+            </span>
+            {% endif %}
+            <a href="{{ url_for('admin_logout') }}" class="hover:bg-red-500 px-4 py-2 rounded transition"><i class="fas fa-sign-out-alt mr-2"></i> Sair</a>
+        </div>
+    </nav><div class="container mx-auto p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Painel Esquerdo - Produtos -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6 animate-fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-boxes text-primary mr-3"></i> Produtos Disponíveis
+                        </h2>
+                        <div class="flex items-center">
+                            <div class="relative">
+                                <input type="text" id="searchInput" placeholder="Buscar produto..." 
+                                    class="border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:ring focus:ring-primary/20">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            <select id="categoryFilter" class="ml-2 border border-gray-300 rounded-lg px-3 py-2 bg-white focus:border-primary focus:ring focus:ring-primary/20">
+                                <option value="">Todas Categorias</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="productsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto p-2"></div>
+                </div>
+            </div>
+            
+            <!-- Painel Direito - Orçamento -->
+            <div class="lg:col-span-1">                <div class="bg-white rounded-lg shadow-md p-6 animate-fade-in sticky top-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
+                        <i class="fas fa-file-invoice text-secondary mr-2"></i> Orçamento
+                        <span id="quotationCode" class="ml-auto text-sm font-normal text-gray-500"></span>
+                    </h2>
+                    
+                    <!-- Informações do Cliente (quando vinculado a um contato) -->
+                    <div id="clientInfo" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 hidden">
+                        <h3 class="font-semibold text-blue-800 mb-2 flex items-center">
+                            <i class="fas fa-user mr-2"></i> Cliente
+                        </h3>
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <div><strong>Nome:</strong> <span id="clientName">-</span></div>
+                            <div><strong>Email:</strong> <span id="clientEmail">-</span></div>
+                            <div><strong>Telefone:</strong> <span id="clientPhone">-</span></div>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-blue-200">
+                            <label class="block text-sm font-medium text-blue-700 mb-1">Endereço:</label>
+                            <input type="text" id="clientAddress" placeholder="Endereço para instalação..." 
+                                class="w-full border border-blue-300 rounded px-2 py-1 focus:border-blue-500 focus:ring focus:ring-blue-200 text-sm">
+                        </div>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg overflow-hidden mb-6">
+                        <table id="cartTable" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Qtd</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="cartTableBody">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                                        <i class="fas fa-shopping-cart text-gray-300 text-4xl mb-2"></i>
+                                        <p>Selecione produtos para o orçamento</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Resumo dos valores -->
+                    <div class="space-y-2 border-t border-b py-4 my-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Subtotal Produtos:</span>
+                            <span class="font-medium">R$ <span id="subtotal">0,00</span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 flex items-center">
+                                Mão de Obra:
+                                <i class="fas fa-info-circle text-primary ml-1 cursor-help" title="Calculado como 50% do valor dos produtos"></i>
+                            </span>
+                            <span class="font-medium">R$ <span id="mo">0,00</span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 flex items-center">
+                                Taxa de Instalação:
+                                <i class="fas fa-info-circle text-primary ml-1 cursor-help" title="Calculado como 30% do valor dos produtos"></i>
+                            </span>
+                            <span class="font-medium">R$ <span id="fee">0,00</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Total e parcelamento -->
+                    <div class="mt-4 mb-8">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-bold">Valor Total:</span>
+                            <span class="text-lg font-bold text-emerald-600">R$ <span id="total">0,00</span></span>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Parcelamento:</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-primary font-medium"><span id="installmentsCount">1</span>x de R$ <span id="installmentValue">0,00</span></span>
+                                <span class="text-xs text-gray-500">Sem juros</span>
+                            </div>
+                            <input type="range" id="installmentsSlider" min="1" max="12" value="1" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>1x</span>
+                                <span>6x</span>
+                                <span>12x</span>
+                            </div>
+                        </div>
+                    </div>                      <!-- Botões de ação -->
+                    <div class="flex flex-col gap-3">
+                        <button id="newQuotationBtn" class="w-full py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-plus mr-2"></i>
+                            Novo Orçamento
+                        </button>
+                        
+                        <!-- Botões Salvar e Visualizar lado a lado -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="saveQuotationBtn" class="py-3 bg-primary hover:bg-primary/90 text-white rounded-lg flex items-center justify-center">
+                                <i class="fas fa-save mr-2"></i>
+                                Salvar
+                            </button>                            <button id="printQuotationBtn" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center justify-center">
+                                <i class="fas fa-print mr-2"></i>
+                                Visualizar
+                            </button>
+                        </div>
+                    </div>                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notificação -->
+        <div id="notification" class="fixed bottom-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20 opacity-0 flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="notificationText">Operação realizada com sucesso!</span>
+        </div>
+    </div>    <script>        let products = [];
+        let cart = {};
+        let quotationId = 'Q-' + new Date().getTime();
+        let currentContact = null;
+        let contactId = null;
+        let currentOrcamentoId = null;
+        
+        // Verificar se estamos visualizando um orçamento específico
+        {% if orcamento_id %}
+        currentOrcamentoId = '{{ orcamento_id }}';
+        {% endif %}
+        
+        // Função para mostrar notificações
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notification.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500');
+            
+            switch(type) {
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500');
+                    break;
+                case 'info':
+                    notification.classList.add('bg-blue-500');
+                    break;
+                default:
+                    notification.classList.add('bg-green-500');
+            }
+            
+            notificationText.textContent = message;
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            notification.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+          // Buscar produtos da API
+        async function fetchProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                return data;
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                showNotification('Erro ao carregar produtos', 'error');
+                return [];
+            }
+        }
+        
+        // Função para obter parâmetros da URL
+        function getURLParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }        // Carregar informações do contato se fornecido na URL ou via parâmetro
+        async function loadContactInfo(providedContactId = null) {
+            // Usar o contactId fornecido como parâmetro ou buscar na URL
+            const targetContactId = providedContactId || getURLParameter('contact_id') || contactId;
+            
+            if (!targetContactId) {
+                return; // Não há contato vinculado
+            }
+            
+            // Atualizar o contactId global
+            contactId = targetContactId;
+            
+            try {
+                const response = await fetch(`/api/contatos/${contactId}`);
+                
+                if (!response.ok) {
+                    showNotification('Erro ao carregar informações do contato', 'error');
+                    return;
+                }
+                
+                currentContact = await response.json();
+                console.log('currentContact carregado:', currentContact);
+                
+                // Mostrar seção de informações do cliente
+                document.getElementById('clientInfo').classList.remove('hidden');
+                  // Ocultar botão "Novo Orçamento" quando há contato vinculado
+                document.getElementById('newQuotationBtn').style.display = 'none';
+                
+                // Preencher dados do cliente
+                document.getElementById('clientName').textContent = currentContact.nome;
+                document.getElementById('clientEmail').textContent = currentContact.email;
+                document.getElementById('clientPhone').textContent = currentContact.telefone;
+                
+                // Atualizar código do orçamento para incluir referência ao contato
+                quotationId = `Q-${currentContact.id.substring(0, 8)}-${new Date().getTime()}`;
+                document.getElementById('quotationCode').textContent = `#${quotationId}`;
+                
+                showNotification(`Orçamento vinculado ao cliente: ${currentContact.nome}`, 'info');
+                
+            } catch (error) {
+                console.error('Erro ao carregar contato:', error);
+                showNotification('Erro de conexão ao carregar contato', 'error');
+            }
+        }
+          // Carregar orçamento específico se fornecido na URL
+        async function loadOrcamentoDetails() {
+            if (!currentOrcamentoId) {
+                return; // Não há orçamento específico para carregar
+            }
+            
+            try {
+                const response = await fetch(`/api/orcamentos/${currentOrcamentoId}`);
+                
+                if (!response.ok) {
+                    showNotification('Erro ao carregar orçamento', 'error');
+                    return;
+                }
+                
+                const orcamento = await response.json();
+                
+                // Carregar dados do orçamento
+                quotationId = orcamento.codigo_orcamento || orcamento.id;
+                document.getElementById('quotationCode').textContent = `#${quotationId}`;                // Se há contato associado, carregar suas informações
+                if (orcamento.contato_site_id) {
+                    contactId = orcamento.contato_site_id;
+                    await loadContactInfo(orcamento.contato_site_id);
+                    console.log('Contato carregado via orçamento:', currentContact);
+                }
+                
+                // Carregar produtos do orçamento
+                if (orcamento.produtos && orcamento.produtos.length > 0) {
+                    cart = {};
+                    orcamento.produtos.forEach(produto => {
+                        cart[produto.id] = produto.quantidade || 1;
+                    });
+                    renderCart();
+                    renderProducts();
+                }
+                
+                // Preencher dados do cliente se não houver contato vinculado
+                if (!orcamento.contato_site_id) {
+                    if (orcamento.cliente_nome) {
+                        document.getElementById('clientNameInput').value = orcamento.cliente_nome;
+                    }
+                    if (orcamento.cliente_contato) {
+                        document.getElementById('clientContact').value = orcamento.cliente_contato;
+                    }
+                    if (orcamento.cliente_endereco) {
+                        document.getElementById('clientAddressInput').value = orcamento.cliente_endereco;
+                    }
+                }
+                
+                showNotification('Orçamento carregado com sucesso', 'info');
+                
+            } catch (error) {
+                console.error('Erro ao carregar orçamento:', error);
+                showNotification('Erro de conexão ao carregar orçamento', 'error');
+            }
+        }
+
+        // Popular o filtro de categorias
+        function populateCategoryFilter(items) {
+            const select = document.getElementById('categoryFilter');
+            select.innerHTML = '<option value="">Todas Categorias</option>';
+            
+            const cats = [...new Set(items.map(p => p.categoria).filter(Boolean))];
+            cats.sort().forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                select.appendChild(opt);
+            });
+            
+            select.onchange = () => {
+                filterProducts();
+            };
+        }
+        
+        // Filtrar produtos por termo de busca e categoria
+        function filterProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            
+            let filtered = [...products];
+            
+            if (category) {
+                filtered = filtered.filter(p => p.categoria === category);
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    (p.nome_produto && p.nome_produto.toLowerCase().includes(searchTerm)) || 
+                    (p.descricao && p.descricao.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            renderProducts(filtered);
+        }
+        
+        // Renderizar produtos na interface
+        function renderProducts(items = products) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-10">
+                        <div class="text-gray-300 text-5xl mb-4">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <p class="text-gray-500">Nenhum produto encontrado.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            items.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'bg-white border border-gray-200 rounded-lg shadow hover:shadow-md transition p-3 flex flex-col';
+                
+                // Verificar se o produto já está no carrinho para ajustar o visual
+                const isInCart = cart[p.id] ? true : false;
+                
+                // Preparar badges para informações adicionais
+                const protocoloBadge = p.protocolo ? 
+                    `<span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">${p.protocolo}</span>` : '';
+                
+                div.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <div class="w-10 h-10 bg-gray-100 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                            <img src="${p.imagem_produto || 'https://via.placeholder.com/100'}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100'">
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-gray-900 line-clamp-1">${p.nome_produto}</h3>
+                            <div class="flex items-center text-xs mt-1">
+                                <span class="text-gray-500">${p.categoria || 'Sem categoria'}</span>
+                                ${protocoloBadge ? `<span class="mx-1">•</span>${protocoloBadge}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-2 flex items-center justify-between">
+                        <span class="font-bold text-emerald-600">R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</span>
+                        <div class="flex items-center">
+                            ${isInCart ? `
+                                <div class="flex items-center border border-primary rounded-md">
+                                    <button class="px-2 py-1 text-primary hover:bg-primary hover:text-white" onclick="decrementQty('${p.id}')">-</button>
+                                    <span class="px-2 font-medium">${cart[p.id]}</span>
+                                    <button class="px-2 py-1 text-primary hover:bg-primary hover:text-white" onclick="incrementQty('${p.id}')">+</button>
+                                </div>
+                            ` : `
+                                <button class="bg-primary text-white hover:bg-primary/90 transition px-3 py-1 rounded-md" onclick="addToCart('${p.id}')">
+                                    <i class="fas fa-plus mr-1"></i> Adicionar
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Funções para gerenciar o carrinho
+        function addToCart(id) {
+            cart[id] = 1;
+            renderProducts();
+            renderCart();
+        }
+        
+        function incrementQty(id) {
+            cart[id] = (cart[id] || 0) + 1;
+            renderProducts();
+            renderCart();
+        }
+        
+        function decrementQty(id) {
+            if (cart[id] > 1) {
+                cart[id]--;
+            } else {
+                delete cart[id];
+            }
+            renderProducts();
+            renderCart();
+        }
+        
+        function removeFromCart(id) {
+            delete cart[id];
+            renderProducts();
+            renderCart();
+        }
+        
+        // Renderizar o carrinho
+        function renderCart() {
+            const tbody = document.getElementById('cartTableBody');
+            tbody.innerHTML = '';
+            
+            const cartItems = Object.keys(cart);
+            
+            if (cartItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                            <i class="fas fa-shopping-cart text-gray-300 text-4xl mb-2"></i>
+                            <p>Selecione produtos para o orçamento</p>
+                        </td>
+                    </tr>
+                `;
+                updateTotals(0);
+                return;
+            }
+            
+            let subtotal = 0;
+            let totalMoHours = 0;
+            let totalInstallHours = 0;
+            
+            cartItems.forEach(id => {
+                const p = products.find(x => x.id === id);
+                const qty = cart[id];
+                const unitValue = parseFloat(p.valor_brl || 0);
+                const subtotalValue = unitValue * qty;
+                
+                // Acumular valores para cálculos
+                subtotal += subtotalValue;
+                
+                // Acumular horas de mão de obra e instalação se disponíveis
+                if (p.mo_horas) {
+                    totalMoHours += parseFloat(p.mo_horas) * qty;
+                }
+                if (p.tempo_instalacao) {
+                    totalInstallHours += parseFloat(p.tempo_instalacao) * qty;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col">
+                            <span class="font-medium">${p.nome_produto}</span>
+                            <span class="text-xs text-gray-500">${p.categoria || ''}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex justify-center items-center">
+                            <button class="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center" onclick="decrementQty('${p.id}')">-</button>
+                            <span class="mx-2">${qty}</span>
+                            <button class="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center" onclick="incrementQty('${p.id}')">+</button>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex flex-col items-end">
+                            <span>R$ ${unitValue.toFixed(2)}</span>
+                            <span class="text-xs text-gray-500">Total: R$ ${subtotalValue.toFixed(2)}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <button class="text-red-500 hover:text-red-700" onclick="removeFromCart('${p.id}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Usar o subtotal para calcular as taxas
+            updateTotals(subtotal, totalMoHours, totalInstallHours);
+        }
+        
+        // Atualizar os totais
+        function updateTotals(subtotal = 0, moHours = 0, installHours = 0) {
+            // Valor base da mão de obra por hora (você pode ajustar conforme necessário)
+            const moHourlyRate = 150; // R$ 150 por hora
+            const installHourlyRate = 120; // R$ 120 por hora
+            
+            // Calcular com base nas horas se disponível, senão usa a porcentagem padrão
+            let mo = moHours > 0 ? moHours * moHourlyRate : subtotal * 0.5;
+            let fee = installHours > 0 ? installHours * installHourlyRate : subtotal * 0.3;
+            
+            const total = subtotal + mo + fee;
+            
+            // Formatar valores para exibição
+            document.getElementById('subtotal').innerText = subtotal.toFixed(2).replace('.', ',');
+            document.getElementById('mo').innerText = mo.toFixed(2).replace('.', ',');
+            document.getElementById('fee').innerText = fee.toFixed(2).replace('.', ',');
+            document.getElementById('total').innerText = total.toFixed(2).replace('.', ',');
+            
+            updateInstallments(total);
+        }
+        
+        // Atualizar o valor das parcelas
+        function updateInstallments(total = 0) {
+            const count = parseInt(document.getElementById('installmentsSlider').value);
+            const val = total / count;
+            document.getElementById('installmentsCount').innerText = count;
+            document.getElementById('installmentValue').innerText = val.toFixed(2).replace('.', ',');
+        }
+        
+        // Ouvinte para o slider de parcelas
+        document.getElementById('installmentsSlider').oninput = function() {
+            const total = parseFloat(document.getElementById('total').innerText.replace(',', '.'));
+            updateInstallments(total);
+        };
+        
+        // Ouvinte para o campo de busca
+        document.getElementById('searchInput').addEventListener('input', filterProducts);        // Gerar o orçamento para impressão
+        async function generateQuotationPrint() {
+            if (Object.keys(cart).length === 0) {
+                showNotification('Adicione produtos ao orçamento primeiro', 'warning');
+                return;
+            }
+            
+            // Se temos um contactId mas não temos currentContact carregado, tentar carregar
+            if (contactId && !currentContact) {
+                console.log('Debug PDF - Tentando carregar contato antes do PDF:', contactId);
+                await loadContactInfo(contactId);
+            }
+            
+            const win = window.open('', '_blank');
+            const date = new Date().toLocaleDateString('pt-BR');
+              // Obter informações do cliente corretamente com debug
+            let clientName, clientContact, clientAddress;
+            
+            console.log('Debug PDF - currentContact:', currentContact);
+            console.log('Debug PDF - contactId:', contactId);
+            
+            if (currentContact && currentContact.nome) {
+                // Orçamento vinculado a um contato
+                clientName = currentContact.nome;
+                clientContact = `${currentContact.email || ''} ${currentContact.telefone ? '| ' + currentContact.telefone : ''}`.trim();
+                clientAddress = document.getElementById('clientAddress') ? document.getElementById('clientAddress').value : '';
+                console.log('Debug PDF - Usando dados do contato:', clientName);
+            } else {
+                // Tentar obter informações dos elementos da interface se disponíveis
+                const clientNameElement = document.getElementById('clientName');
+                const clientEmailElement = document.getElementById('clientEmail');
+                const clientPhoneElement = document.getElementById('clientPhone');
+                
+                if (clientNameElement && clientNameElement.textContent && clientNameElement.textContent !== '-') {
+                    clientName = clientNameElement.textContent;
+                    clientContact = `${clientEmailElement && clientEmailElement.textContent !== '-' ? clientEmailElement.textContent : ''} ${clientPhoneElement && clientPhoneElement.textContent !== '-' ? '| ' + clientPhoneElement.textContent : ''}`.trim();
+                    clientAddress = document.getElementById('clientAddress') ? document.getElementById('clientAddress').value : '';
+                    console.log('Debug PDF - Usando dados da interface:', clientName);
+                } else {
+                    // Fallback para caso não haja contato
+                    clientName = 'Cliente não identificado';
+                    clientContact = '';
+                    clientAddress = '';
+                    console.log('Debug PDF - Usando fallback - Cliente não identificado');
+                }
+            }
+            
+            // Estilos para o PDF
+            let html = `
+                <html>
+                <head>
+                    <title>Orçamento LinkarCasa #${quotationId}</title>
+                    <style>
+                        body {
+                            font-family: 'Segoe UI', Arial, sans-serif;
+                            color: #333;
+                            line-height: 1.5;
+                            padding: 2rem;
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 2rem;
+                            padding-bottom: 1rem;
+                            border-bottom: 2px solid #667eea;
+                        }
+                        .header h1 {
+                            color: #667eea;
+                            margin-bottom: 0.5rem;
+                        }
+                        .header p {
+                            color: #666;
+                            margin-top: 0;
+                        }
+                        .client-info {
+                            margin-bottom: 2rem;
+                            padding: 1rem;
+                            background: #f9f9f9;
+                            border-radius: 5px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 2rem 0;
+                        }
+                        table th, table td {
+                            padding: 0.75rem;
+                            border: 1px solid #ddd;
+                            text-align: left;
+                        }
+                        table th {
+                            background: #f5f5f5;
+                            font-weight: 600;
+                        }
+                        .subtotal-row td {
+                            text-align: right;
+                            font-weight: 600;
+                        }
+                        .totals-section {
+                            margin-top: 2rem;
+                            padding: 1rem;
+                            background: #f5f7ff;
+                            border-radius: 5px;
+                        }
+                        .total-line {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 0.5rem 0;
+                            border-bottom: 1px solid #eee;
+                        }
+                        .total-line:last-child {
+                            border-bottom: none;
+                            font-weight: bold;
+                            font-size: 1.25rem;
+                            color: #667eea;
+                        }
+                        .installment-info {
+                            margin-top: 1rem;
+                            text-align: center;
+                            font-weight: bold;
+                        }                        .footer {
+                            margin-top: 3rem;
+                            text-align: center;
+                            font-size: 0.875rem;
+                            color: #666;
+                            border-top: 2px solid #667eea;
+                            padding-top: 1rem;
+                        }
+                        .footer img {
+                            max-height: 50px;
+                            width: auto;
+                            margin: 0 auto 10px;
+                            display: block;
+                        }
+                        .footer .company-info {
+                            font-weight: bold;
+                            color: #333;
+                            margin: 5px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Orçamento LinkarCasa</h1>
+                        <p>Data: ${date} | Orçamento #${quotationId}</p>
+                    </div>
+                    
+                    <div class="client-info">
+                        <h3>Informações do Cliente</h3>
+                        <p><strong>Nome:</strong> ${clientName}</p>
+                        ${clientContact ? `<p><strong>Contato:</strong> ${clientContact}</p>` : ''}
+                        ${clientAddress ? `<p><strong>Endereço:</strong> ${clientAddress}</p>` : ''}
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Qtd</th>
+                                <th>Valor Unitário</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Produtos no orçamento
+            Object.keys(cart).forEach(id => {
+                const p = products.find(x => x.id === id);
+                const qty = cart[id];
+                const unitValue = parseFloat(p.valor_brl || 0);
+                const subtotalValue = unitValue * qty;
+                
+                html += `
+                    <tr>
+                        <td>
+                            <strong>${p.nome_produto}</strong>
+                            ${p.fabricante ? `<br><small>${p.fabricante} ${p.modelo || ''}</small>` : ''}
+                        </td>
+                        <td>${qty}</td>
+                        <td>R$ ${unitValue.toFixed(2)}</td>
+                        <td>R$ ${subtotalValue.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            // Valores finais
+            const subtotal = parseFloat(document.getElementById('subtotal').innerText.replace(',', '.'));
+            const mo = parseFloat(document.getElementById('mo').innerText.replace(',', '.'));
+            const fee = parseFloat(document.getElementById('fee').innerText.replace(',', '.'));
+            const total = parseFloat(document.getElementById('total').innerText.replace(',', '.'));
+            
+            // Parcelamento
+            const count = parseInt(document.getElementById('installmentsCount').innerText);
+            const installmentValue = parseFloat(document.getElementById('installmentValue').innerText.replace(',', '.'));
+            
+            html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="totals-section">
+                        <div class="total-line">
+                            <span>Subtotal Produtos:</span>
+                            <span>R$ ${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="total-line">
+                            <span>Mão de Obra (50%):</span>
+                            <span>R$ ${mo.toFixed(2)}</span>
+                        </div>
+                        <div class="total-line">
+                            <span>Taxa de Instalação (30%):</span>
+                            <span>R$ ${fee.toFixed(2)}</span>
+                        </div>
+                        <div class="total-line">
+                            <span>Total:</span>
+                            <span>R$ ${total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="installment-info">
+                        <p>Parcelamento: ${count}x de R$ ${installmentValue.toFixed(2)} sem juros</p>
+                    </div>                    <div class="footer">
+                        <img src="/static/medias/Logo - Fundo Transparente.png" alt="LinkarCasa">
+                        <p>Este orçamento é válido por 15 dias. Para mais informações, entre em contato conosco.</p>
+                        <p class="company-info">LinkarCasa - Automação Residencial</p>
+                        <p>contato@linkarcasa.com | (99) 9999-9999</p>
+                        <p style="font-size: 0.75rem; color: #888; margin-top: 10px;">
+                            Soluções inteligentes para sua casa • Instalação e suporte especializados
+                        </p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            
+            // Pequeno atraso para garantir que o conteúdo seja carregado antes da impressão
+            setTimeout(() => {
+                win.print();
+            }, 500);
+        }
+          // Botão para novo orçamento
+        document.getElementById('newQuotationBtn').addEventListener('click', function() {
+            if (Object.keys(cart).length > 0 || currentContact) {
+                if (confirm('Deseja realmente iniciar um novo orçamento? Os itens atuais e informações do cliente serão removidos.')) {
+                    // Limpar carrinho
+                    cart = {};
+                    
+                    // Limpar informações do contato
+                    currentContact = null;
+                    contactId = null;
+                    
+                    // Ocultar seção de informações do cliente
+                    document.getElementById('clientInfo').classList.add('hidden');
+                    
+                    // Gerar novo ID de orçamento
+                    quotationId = 'Q-' + new Date().getTime();
+                    document.getElementById('quotationCode').textContent = `#${quotationId}`;
+                    
+                    // Limpar campos de formulário se existirem
+                    const clientAddressField = document.getElementById('clientAddress');
+                    if (clientAddressField) {
+                        clientAddressField.value = '';
+                    }
+                    
+                    const installmentsSlider = document.getElementById('installmentsSlider');
+                    if (installmentsSlider) {
+                        installmentsSlider.value = 1;
+                    }
+                    
+                    // Remover parâmetros da URL
+                    const url = new URL(window.location);
+                    url.searchParams.delete('contact_id');
+                    window.history.pushState({}, '', url);
+                    
+                    // Atualizar exibições
+                    renderProducts();
+                    renderCart();
+                    
+                    showNotification('Novo orçamento iniciado');
+                }
+            } else {
+                showNotification('Orçamento já está vazio', 'info');
+            }
+        });// Botão para salvar orçamento
+        document.getElementById('saveQuotationBtn').addEventListener('click', async function() {
+            if (Object.keys(cart).length === 0) {
+                showNotification('Adicione produtos ao orçamento primeiro', 'warning');
+                return;
+            }            // Verificar se há contato vinculado
+            if (!currentContact) {
+                showNotification('Erro: Este orçamento deve estar vinculado a um contato', 'error');
+                return;
+            }
+            
+            // Orçamento vinculado a um contato
+            const clientName = currentContact.nome;
+            const clientEmail = currentContact.email;
+            const clientPhone = currentContact.telefone;
+            const clientAddress = document.getElementById('clientAddress').value || '';
+            
+            // Preparar os dados do orçamento
+            const produtosOrdem = [];
+            Object.keys(cart).forEach(id => {
+                const product = products.find(p => p.id === id);
+                produtosOrdem.push({
+                    id: product.id,
+                    nome_produto: product.nome_produto,
+                    categoria: product.categoria,
+                    valor_brl: product.valor_brl,
+                    mo_horas: product.mo_horas,
+                    tempo_instalacao: product.tempo_instalacao,
+                    quantidade: cart[id],
+                    subtotal: parseFloat(product.valor_brl) * cart[id]
+                });
+            });
+            
+            const subtotal = parseFloat(document.getElementById('subtotal').innerText.replace(',', '.'));
+            const mo = parseFloat(document.getElementById('mo').innerText.replace(',', '.'));
+            const fee = parseFloat(document.getElementById('fee').innerText.replace(',', '.'));
+            const total = subtotal + mo + fee;
+            const parcelas = parseInt(document.getElementById('installmentsSlider').value);
+            
+            const payload = {
+                contato_site_id: currentContact ? currentContact.id : null,
+                codigo_orcamento: quotationId,
+                cliente_nome: clientName,
+                cliente_email: clientEmail,
+                cliente_telefone: clientPhone,
+                cliente_endereco: clientAddress,
+                produtos: produtosOrdem,
+                subtotal_produtos: subtotal,
+                mo_valor: mo,
+                taxa_instalacao: fee,
+                valor_total: total,
+                parcelas: parcelas,
+                status: 'em_analise',
+                responsavel: '{{ session.admin_user.name if session.admin_user else "Admin" }}'
+            };
+            
+            try {
+                // Salvar o orçamento via API
+                const response = await fetch('/api/orcamentos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification('Orçamento salvo com sucesso!');
+                    
+                    // Se havia um contato vinculado, atualizar seu status
+                    if (currentContact) {
+                        await updateContactStatus();
+                    }
+                    
+                    // Atualizar ID do orçamento caso tenha sido gerado pelo servidor
+                    if (result.codigo_orcamento) {
+                        quotationId = result.codigo_orcamento;
+                        document.getElementById('quotationCode').textContent = `#${quotationId}`;
+                    }
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro ao salvar orçamento');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar orçamento:', error);
+                showNotification('Erro ao salvar orçamento: ' + error.message, 'error');
+            }        });
+
+        // Botão para visualizar orçamento
+        document.getElementById('printQuotationBtn').addEventListener('click', async function() {
+            await generateQuotationPrint();
+        });
+
+        // Atualizar status do contato para "orçamento_criado"
+        async function updateContactStatus() {
+            if (!currentContact) return;
+            
+            try {
+                const response = await fetch(`/api/contatos/${currentContact.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'orçamento_criado'
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.error('Erro ao atualizar status do contato');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status do contato:', error);
+            }
+        }
+          // Inicialização
+        window.onload = async () => {
+            try {
+                // Carregar informações do contato se fornecido na URL
+                await loadContactInfo();
+                
+                // Carregar produtos
+                products = await fetchProducts();
+                populateCategoryFilter(products);
+                renderProducts();
+                
+                // Carregar detalhes do orçamento se disponível
+                await loadOrcamentoDetails();
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+            }
+        };
+    </script>
+</body>
+</html>

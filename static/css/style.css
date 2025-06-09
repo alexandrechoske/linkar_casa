@@ -1,0 +1,340 @@
+/* Custom CSS for LinkarCasa */
+
+/* Keyframes for animations */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 30px rgba(0, 212, 170, 0.6), 0 0 40px rgba(0, 212, 170, 0.3);
+    }
+}
+
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+        opacity: 0.8;
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(0, 212, 170, 0.6), 0 0 60px rgba(0, 102, 255, 0.3);
+        opacity: 1;
+    }
+}
+
+/* Smooth scrolling for all elements */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #00D4AA, #0066FF);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #00B8AA, #0056CC);
+}
+
+/* Enhanced button hover effects */
+.btn-gradient {
+    background: linear-gradient(135deg, #00D4AA, #0066FF);
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    background: linear-gradient(135deg, #00B8AA, #0056CC);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 212, 170, 0.3);
+}
+
+/* Enhanced text gradients */
+.text-gradient-primary {
+    background: linear-gradient(135deg, #00D4AA, #0066FF, #2D1B69);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* FAQ accordion styles */
+.faq-item .faq-question:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 102, 255, 0.1));
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+/* Form enhancements */
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #00D4AA;
+    box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+}
+
+/* Loading spinner for form submission */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Enhanced hero section background */
+.hero-bg {
+    background: radial-gradient(ellipse at center, rgba(45, 27, 105, 0.3) 0%, rgba(0, 102, 255, 0.1) 50%, rgba(17, 24, 39, 1) 100%);
+}
+
+/* Intersection observer animations */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease-out;
+}
+
+.fade-in-up.animate {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Enhanced mobile menu */
+@media (max-width: 768px) {
+    .mobile-menu-open {
+        max-height: 300px;
+        opacity: 1;
+    }
+    
+    .mobile-menu-closed {
+        max-height: 0;
+        opacity: 0;
+    }
+}
+
+/* Typography enhancements */
+.text-shadow-glow {
+    text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
+}
+
+/* Connection lines animation */
+.connection-line {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: drawLine 3s ease-in-out infinite;
+}
+
+@keyframes drawLine {
+    0% {
+        stroke-dashoffset: 100;
+        opacity: 0.3;
+    }
+    50% {
+        stroke-dashoffset: 0;
+        opacity: 0.8;
+    }
+    100% {
+        stroke-dashoffset: -100;
+        opacity: 0.3;
+    }
+}
+
+/* Enhanced card hover effects */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Particle effect background */
+.particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #00D4AA;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: float 6s infinite linear;
+}
+
+/* Enhanced responsive design */
+@media (max-width: 640px) {
+    .hero-title {
+        font-size: 2.5rem;
+        line-height: 1.2;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Tooltip CSS */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltip-container i {
+    transition: all 0.2s ease;
+}
+
+.tooltip-container:hover i {
+    transform: scale(1.1);
+}
+
+.tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    z-index: 99999 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.tooltip-content > div {
+    white-space: normal;
+    background-color: #1f2937 !important;
+    border: 2px solid rgba(0, 102, 255, 0.5) !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    width: 280px !important;
+}
+
+/* CSS hover fallback */
+.tooltip-container:hover .tooltip-content {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* Force show class for testing */
+.tooltip-content.force-show {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #1f2937;
+}
+
+/* Responsive tooltip positioning */
+@media (max-width: 768px) {
+    .tooltip-content {
+        max-width: 260px;
+        left: auto;
+        right: 0;
+        transform: none;
+        margin-right: -10px;
+        bottom: auto;
+        top: 100%;
+        margin-top: 8px;
+        margin-bottom: 0;
+    }
+    
+    .tooltip-content::after {
+        left: auto;
+        right: 20px;
+        transform: none;
+        top: -8px;
+        border-top: none;
+        border-bottom: 8px solid #1f2937;
+    }
+}
