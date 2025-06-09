@@ -40,33 +40,112 @@ A LinkarCasa é um serviço inovador que oferece infraestrutura completa para Ho
 ### Pré-requisitos
 - Python 3.8 ou superior
 - pip (gerenciador de pacotes Python)
+- Git (opcional)
 
-### Instalação
+### Método 1: Início Rápido (Recomendado)
+
+Para Windows, use um dos scripts de inicialização:
+
+**PowerShell (Recomendado para Windows):**
+```powershell
+.\start.ps1
+```
+
+**Prompt de Comando:**
+```cmd
+start.bat
+```
+
+**Git Bash/WSL:**
+```bash
+./start.sh
+```
+
+Os scripts irão automaticamente:
+- Verificar se o Python está instalado
+- Criar um ambiente virtual
+- Instalar todas as dependências
+- Criar um arquivo `.env` de exemplo (se não existir)
+- Iniciar a aplicação
+
+### Método 2: Instalação Manual
 
 1. **Clone ou baixe o projeto**
-2. **Instale as dependências**:
+
+2. **Crie um ambiente virtual** (recomendado):
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Ative o ambiente virtual**:
+   
+   **Windows (PowerShell):**
+   ```powershell
+   venv\Scripts\Activate.ps1
+   ```
+   
+   **Windows (CMD):**
+   ```cmd
+   venv\Scripts\activate.bat
+   ```
+   
+   **Linux/Mac:**
+   ```bash
+   source venv/bin/activate
+   ```
+
+4. **Instale as dependências**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure as variáveis de ambiente** (opcional):
-   ```bash
-   # Para desenvolvimento local, você pode definir:
-   export SECRET_KEY="sua-chave-secreta-aqui"
-   export WEBHOOK_URL="https://sua-url-webhook-aqui.com"
+5. **Configure o arquivo .env**:
+   Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+   ```env
+   # Configurações do Supabase
+   SUPABASE_URL=sua_url_do_supabase_aqui
+   SUPABASE_ANON_KEY=sua_chave_anonima_aqui
+   SUPABASE_SERVICE_KEY=sua_chave_de_servico_aqui
+
+   # Configurações da aplicação
+   SECRET_KEY=sua_chave_secreta_aqui
+   ADMIN_EMAILS=linkarcasa.automacoes@gmail.com
+
+   # Webhook (opcional)
+   WEBHOOK_URL=https://seu-webhook-url-aqui.com
+
+   # Configurações de ambiente
+   FLASK_ENV=development
+   FLASK_DEBUG=1
    ```
 
-4. **Execute a aplicação**:
+6. **Execute a aplicação**:
    ```bash
    python app.py
    ```
 
-5. **Acesse o sistema**:
-   Abra seu navegador e vá para `http://localhost:5000/admin`
-   
-   **Credenciais de acesso**:
-   - Usuário: `linkarcasa`
-   - Senha: `linkarcasa_adm_2020`
+### Acessando o Sistema
+
+1. **Acesse o sistema**: Abra seu navegador e vá para `http://localhost:5000`
+
+2. **Área administrativa**: `http://localhost:5000/admin/login`
+
+3. **Dashboard**: `http://localhost:5000/admin/dashboard` (após login)
+
+### Scripts de Inicialização
+
+O projeto inclui scripts automatizados para facilitar a inicialização:
+
+- `start.ps1` - Script PowerShell para Windows (recomendado)
+- `start.bat` - Script batch para Windows 
+- `start.sh` - Script bash para Linux/Mac/WSL
+
+Estes scripts automaticamente:
+- ✅ Verificam dependências
+- ✅ Criam ambiente virtual
+- ✅ Instalam pacotes necessários
+- ✅ Criam arquivo .env de exemplo
+- ✅ Iniciam a aplicação
 
 ## Configuração do Supabase
 
