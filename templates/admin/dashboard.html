@@ -344,6 +344,7 @@
         <a href="{{ url_for('admin_dashboard') }}" class="bg-white/30 px-4 py-2 rounded transition mr-4 font-bold"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
         <a href="{{ url_for('admin_products') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-boxes mr-2"></i> Produtos</a>
         <a href="{{ url_for('admin_quotation') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-file-invoice mr-2"></i> Orçamento</a>
+        <a href="{{ url_for('admin_settings') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-cog mr-2"></i> Configurações</a>
         
         <div class="ml-auto flex items-center">
             {% if session.admin_user %}
@@ -753,15 +754,22 @@
                         <textarea id="contact-notes" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" 
                             rows="3" placeholder="Adicione observações sobre este contato...">${currentContact.observacoes || ''}</textarea>
                     </div>
-                    
-                    <!-- Se já existir um orçamento, mostrar link -->
+                      <!-- Se já existir um orçamento, mostrar listagem de orçamentos -->
                     ${currentContact.status === 'orçamento_criado' ? `
                         <div class="bg-indigo-50 border border-indigo-200 rounded p-4 mb-6">
-                            <h4 class="font-semibold text-indigo-800 mb-2">Orçamento Criado</h4>
-                            <p>Este contato já possui um orçamento associado.</p>
-                            <button onclick="viewQuotation('${currentContact.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded mt-2 hover:bg-indigo-700 transition">
-                                <i class="fas fa-file-invoice mr-1"></i> Ver Orçamento
-                            </button>
+                            <h4 class="font-semibold text-indigo-800 mb-2">Orçamentos Criados</h4>
+                            <p class="mb-3">Este contato possui orçamentos associados.</p>
+                            <div id="contactQuotationsList-${currentContact.id}" class="space-y-2 mb-3">
+                                <div class="text-sm text-gray-500">Carregando orçamentos...</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="viewContactQuotations('${currentContact.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition text-sm">
+                                    <i class="fas fa-list mr-1"></i> Ver Todos
+                                </button>
+                                <button onclick="createQuotationForContact('${currentContact.id}')" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition text-sm">
+                                    <i class="fas fa-plus mr-1"></i> Novo Orçamento
+                                </button>
+                            </div>
                         </div>
                     ` : ''}
                 `;
@@ -771,7 +779,7 @@
                 
                 // Buscar orçamentos se existirem
                 if (currentContact.status === 'orçamento_criado') {
-                    // Implementar lógica para buscar orçamentos
+                    loadContactQuotations(currentContact.id);
                 }
             } catch (error) {
                 console.error('Erro ao mostrar detalhes do contato:', error);
@@ -1071,6 +1079,335 @@
             
             // Tentar carregar novamente
             await loadContacts();
+        }
+
+        // Buscar e exibir orçamentos de um contato específico
+        async function loadContactQuotations(contactId) {
+            try {
+                const response = await fetch(`/api/orcamentos?contato_site_id=${contactId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const quotations = data.orcamentos || [];
+                    
+                    const container = document.getElementById(`contactQuotationsList-${contactId}`);
+                    
+                    if (quotations.length === 0) {
+                        container.innerHTML = '<div class="text-sm text-gray-500">Nenhum orçamento encontrado</div>';
+                        return;
+                    }
+                    
+                    // Exibir até 3 orçamentos resumidos
+                    const displayQuotations = quotations.slice(0, 3);
+                    container.innerHTML = displayQuotations.map(quotation => {
+                        const statusColors = {
+                            'em_analise': 'bg-yellow-100 text-yellow-800',
+                            'enviado': 'bg-blue-100 text-blue-800',
+                            'aprovado': 'bg-green-100 text-green-800',
+                            'rejeitado': 'bg-red-100 text-red-800'
+                        };
+                        
+                        const statusLabels = {
+                            'em_analise': 'Em Análise',
+                            'enviado': 'Enviado',
+                            'aprovado': 'Aprovado',
+                            'rejeitado': 'Rejeitado'
+                        };
+                        
+                        const createdDate = new Date(quotation.created_at).toLocaleDateString('pt-BR');
+                        
+                        return `
+                            <div class="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-lg">
+                                <div>
+                                    <div class="font-medium text-sm">${quotation.codigo_orcamento || quotation.id}</div>
+                                    <div class="text-xs text-gray-500">${createdDate}</div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[quotation.status] || 'bg-gray-100 text-gray-800'}">
+                                        ${statusLabels[quotation.status] || quotation.status}
+                                    </span>
+                                    <span class="text-sm font-bold text-emerald-600">
+                                        R$ ${(quotation.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Mostrar quantos orçamentos restantes se houver mais
+                    if (quotations.length > 3) {
+                        container.innerHTML += `
+                            <div class="text-xs text-gray-500 text-center pt-2">
+                                +${quotations.length - 3} orçamentos adicionais
+                            </div>
+                        `;
+                    }
+                } else {
+                    console.error('Erro ao carregar orçamentos');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar orçamentos:', error);
+            }
+        }
+
+        // Visualizar todos os orçamentos de um contato
+        async function viewContactQuotations(contactId) {
+            try {
+                const response = await fetch(`/api/orcamentos?contato_site_id=${contactId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const quotations = data.orcamentos || [];
+                    
+                    if (quotations.length === 0) {
+                        showAlert('Nenhum orçamento encontrado para este contato', 'warning');
+                        return;
+                    }
+                    
+                    // Criar modal para mostrar todos os orçamentos
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                    modal.innerHTML = `
+                        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4">
+                            <div class="p-6">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h2 class="text-2xl font-bold text-gray-800">Orçamentos do Cliente</h2>
+                                    <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                                        <i class="fas fa-times text-xl"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    ${quotations.map(quotation => {
+                                        const statusColors = {
+                                            'em_analise': 'bg-yellow-100 text-yellow-800',
+                                            'enviado': 'bg-blue-100 text-blue-800',
+                                            'aprovado': 'bg-green-100 text-green-800',
+                                            'rejeitado': 'bg-red-100 text-red-800'
+                                        };
+                                        
+                                        const statusLabels = {
+                                            'em_analise': 'Em Análise',
+                                            'enviado': 'Enviado',
+                                            'aprovado': 'Aprovado',
+                                            'rejeitado': 'Rejeitado'
+                                        };
+                                        
+                                        const createdDate = new Date(quotation.created_at).toLocaleDateString('pt-BR');
+                                        const productCount = Array.isArray(quotation.produtos) ? quotation.produtos.length : 0;
+                                        
+                                        return `
+                                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                                                <div class="flex justify-between items-start mb-3">
+                                                    <div>
+                                                        <h3 class="text-lg font-semibold text-gray-800">${quotation.codigo_orcamento || quotation.id}</h3>
+                                                        <p class="text-sm text-gray-500">${createdDate} • ${productCount} produto(s)</p>
+                                                    </div>
+                                                    <div class="flex flex-col items-end gap-2">
+                                                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[quotation.status] || 'bg-gray-100 text-gray-800'}">
+                                                            ${statusLabels[quotation.status] || quotation.status}
+                                                        </span>
+                                                        <span class="text-lg font-bold text-emerald-600">
+                                                            R$ ${(quotation.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex gap-2 mt-3">
+                                                    <button onclick="editContactQuotation('${quotation.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                                        <i class="fas fa-edit mr-1"></i> Editar
+                                                    </button>
+                                                    <button onclick="printContactQuotation('${quotation.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-sm">
+                                                        <i class="fas fa-print mr-1"></i> Imprimir
+                                                    </button>
+                                                    <button onclick="duplicateContactQuotation('${quotation.id}')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                                                        <i class="fas fa-copy mr-1"></i> Duplicar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                
+                                <div class="flex justify-center gap-2 mt-6">
+                                    <button onclick="createQuotationForContact('${contactId}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                        <i class="fas fa-plus mr-2"></i> Novo Orçamento
+                                    </button>
+                                    <button onclick="this.closest('.fixed').remove()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                                        Fechar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                } else {
+                    showAlert('Erro ao carregar orçamentos', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro de conexão ao carregar orçamentos', 'error');
+            }
+        }        // Editar orçamento a partir do dashboard
+        function editContactQuotation(quotationId) {
+            window.location.href = `{{ url_for('admin_quotation') }}?edit=${quotationId}`;
+        }
+
+        // Imprimir orçamento a partir do dashboard
+        async function printContactQuotation(quotationId) {
+            try {
+                const response = await fetch(`/api/orcamentos/${quotationId}`);
+                
+                if (response.ok) {
+                    const quotation = await response.json();
+                    
+                    const win = window.open('', '_blank');
+                    const date = new Date().toLocaleDateString('pt-BR');
+                    
+                    let html = `
+                        <html>
+                        <head>
+                            <title>Orçamento LinkarCasa #${quotation.codigo_orcamento || quotation.id}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; margin: 20px; }
+                                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #667eea; padding-bottom: 20px; }
+                                .client-info { margin-bottom: 30px; }
+                                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                                th { background-color: #f2f2f2; }
+                                .totals-section { margin-top: 20px; padding: 15px; background: #f5f7ff; border-radius: 5px; }
+                                .total-line { display: flex; justify-content: space-between; padding: 5px 0; }
+                                .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <h1>Orçamento LinkarCasa</h1>
+                                <p>Data: ${date} | Orçamento #${quotation.codigo_orcamento || quotation.id}</p>
+                            </div>
+                            
+                            <div class="client-info">
+                                <h3>Informações do Cliente</h3>
+                                <p><strong>Nome:</strong> ${quotation.cliente_nome || 'N/A'}</p>
+                                ${quotation.cliente_email ? `<p><strong>Email:</strong> ${quotation.cliente_email}</p>` : ''}
+                                ${quotation.cliente_telefone ? `<p><strong>Telefone:</strong> ${quotation.cliente_telefone}</p>` : ''}
+                                ${quotation.cliente_endereco ? `<p><strong>Endereço:</strong> ${quotation.cliente_endereco}</p>` : ''}
+                            </div>
+                            
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Qtd</th>
+                                        <th>Valor Unitário</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${(quotation.produtos || []).map(produto => `
+                                        <tr>
+                                            <td>${produto.nome_produto || 'Produto'}</td>
+                                            <td>${produto.quantidade || 1}</td>
+                                            <td>R$ ${(produto.valor_brl || 0).toFixed(2)}</td>
+                                            <td>R$ ${(produto.subtotal || (produto.valor_brl * produto.quantidade) || 0).toFixed(2)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            
+                            <div class="totals-section">                                <div class="total-line">
+                                    <span>Subtotal Produtos:</span>
+                                    <span>R$ ${(quotation.subtotal_produtos || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="total-line">
+                                    <span>Taxa de Serviços:</span>
+                                    <span>R$ ${(quotation.taxa_servicos || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="total-line">
+                                    <span>Mão de Obra:</span>
+                                    <span>R$ ${(quotation.mo_valor || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="total-line" style="font-weight: bold; font-size: 1.2em; color: #667eea;">
+                                    <span>Total à Vista:</span>
+                                    <span>R$ ${(quotation.valor_total || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="total-line" style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                                    <span style="color: #1565c0;">+ Mensalidade do Plano:</span>
+                                    <span style="color: #1565c0; font-weight: bold;">R$ ${(quotation.mensalidade_plano || 149.90).toFixed(2)}/mês</span>
+                                </div>
+                            </div>
+                              ${quotation.parcelas && quotation.parcelas > 1 ? `
+                                <div style="text-align: center; margin-top: 15px; font-weight: bold;">
+                                    <p>Parcelamento: ${quotation.parcelas}x de R$ ${(quotation.valor_total / quotation.parcelas).toFixed(2)} sem juros (somente valor à vista)</p>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="footer">
+                                <p>Este orçamento é válido por 15 dias. Para mais informações, entre em contato conosco.</p>
+                                <p><strong>LinkarCasa - Automação Residencial</strong></p>
+                                <p>contato@linkarcasa.com | (99) 9999-9999</p>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                    
+                    win.document.write(html);
+                    win.document.close();
+                    win.focus();
+                    
+                    setTimeout(() => {
+                        win.print();
+                    }, 500);
+                } else {
+                    showAlert('Erro ao carregar orçamento para impressão', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao imprimir orçamento:', error);
+                showAlert('Erro de conexão ao imprimir orçamento', 'error');
+            }
+        }
+
+        // Duplicar orçamento a partir do dashboard
+        async function duplicateContactQuotation(quotationId) {
+            try {
+                const response = await fetch(`/api/orcamentos/${quotationId}`);
+                
+                if (response.ok) {
+                    const quotation = await response.json();
+                    
+                    // Criar nova instância baseada na existente
+                    delete quotation.id;
+                    delete quotation.created_at;
+                    delete quotation.updated_at;
+                    quotation.codigo_orcamento = 'Q-' + new Date().getTime();
+                    quotation.status = 'em_analise';
+                    
+                    const createResponse = await fetch('/api/orcamentos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(quotation)
+                    });
+                    
+                    if (createResponse.ok) {
+                        showAlert('Orçamento duplicado com sucesso!');
+                        // Recarregar orçamentos do contato se o modal estiver aberto
+                        const contactId = quotation.contato_site_id;
+                        if (contactId) {
+                            loadContactQuotations(contactId);
+                        }
+                    } else {
+                        showAlert('Erro ao duplicar orçamento', 'error');
+                    }
+                } else {
+                    showAlert('Erro ao carregar orçamento para duplicação', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao duplicar orçamento:', error);
+                showAlert('Erro de conexão ao duplicar orçamento', 'error');
+            }
         }
     </script>
 </body>

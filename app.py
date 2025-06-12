@@ -255,6 +255,29 @@ def api_quotation():
             
             # Preparar dados do orçamento
             cotacao_id = data.get('quotation_id', f"COT-{datetime.now().strftime('%Y%m%d%H%M%S')}")
+              # Buscar configurações do sistema
+            try:
+                config_response = supabase.table('configuracoes').select('*').limit(1).execute()
+                if config_response.data:
+                    config = config_response.data[0]
+                else:
+                    # Configurações padrão se não existir
+                    config = {
+                        'taxa_servicos': 50.0,
+                        'mao_de_obra': 35.0,
+                        'margem_equipamentos': 30.0,
+                        'mensalidade_plano': 149.90,
+                        'incluir_mao_de_obra': True
+                    }
+            except:
+                # Em caso de erro, usar configurações padrão
+                config = {
+                    'taxa_servicos': 50.0,
+                    'mao_de_obra': 35.0,
+                    'margem_equipamentos': 30.0,
+                    'mensalidade_plano': 149.90,
+                    'incluir_mao_de_obra': True
+                }
             
             # Calcular totais
             subtotal_produtos = sum(float(p.get('valor_brl', 0)) * p.get('quantidade', 1) for p in data.get('produtos', []))
@@ -263,17 +286,23 @@ def api_quotation():
             has_mo_hours = any(p.get('mo_horas') for p in data.get('produtos', []))
             has_install_hours = any(p.get('tempo_instalacao') for p in data.get('produtos', []))
             
-            # Taxas padrão se não houver horas definidas
-            if not has_mo_hours:
-                mo_valor = subtotal_produtos * 0.5  # 50% do valor dos produtos
-            else:
-                # Calcular com base nas horas e na taxa horária
-                mo_valor = sum(
-                    float(p.get('mo_horas', 0)) * 150 * p.get('quantidade', 1) 
-                    for p in data.get('produtos', [])
-                    if p.get('mo_horas')
-                )
+            # Taxa de serviços (configuração criação da aplicação)
+            taxa_servicos = subtotal_produtos * (float(config.get('taxa_servicos', 50)) / 100)
             
+            # Mão de obra (se habilitada)
+            mo_valor = 0
+            if config.get('incluir_mao_de_obra', True):
+                if not has_mo_hours:
+                    mo_valor = subtotal_produtos * (float(config.get('mao_de_obra', 35)) / 100)
+                else:
+                    # Calcular com base nas horas e na taxa horária
+                    mo_valor = sum(
+                        float(p.get('mo_horas', 0)) * 150 * p.get('quantidade', 1) 
+                        for p in data.get('produtos', [])
+                        if p.get('mo_horas')
+                    )
+            
+            # Taxa de instalação permanece como estava (30% ou baseado em horas)
             if not has_install_hours:
                 taxa_instalacao = subtotal_produtos * 0.3  # 30% do valor dos produtos
             else:
@@ -284,7 +313,11 @@ def api_quotation():
                     if p.get('tempo_instalacao')
                 )
             
-            valor_total = subtotal_produtos + mo_valor + taxa_instalacao
+            # Valor total à vista (produtos + taxa de serviços + mão de obra)
+            valor_total = subtotal_produtos + taxa_servicos + mo_valor
+            
+            # Mensalidade do plano (separada do valor à vista)
+            mensalidade_plano = float(config.get('mensalidade_plano', 149.90))
             
             # Montar objeto para salvar
             cotacao = {
@@ -544,6 +577,94 @@ def admin_quotation_view(orcamento_id):
     """Visualizar um orçamento específico"""
     return render_template('admin/quotation.html', orcamento_id=orcamento_id)
 
+@app.route('/admin/settings')
+@admin_required
+def admin_settings():
+    return render_template('admin/settings.html')
+
+@app.route('/api/configuracoes', methods=['GET', 'POST'])
+@admin_required
+def api_configuracoes():
+    try:
+        if not supabase:
+            return jsonify({'error': 'Supabase não configurado'}), 500
+        
+        if request.method == 'GET':
+            # Buscar todas as configurações
+            response = supabase.table('configuracoes').select('chave, valor').execute()
+            
+            # Converter para formato de objeto
+            config = {}
+            for item in response.data:
+                chave = item['chave']
+                valor = item['valor']
+                
+                # Converter valores para os tipos corretos
+                if chave in ['taxa_servicos_percentual', 'mao_obra_percentual']:
+                    config[chave.replace('_percentual', '')] = float(valor)
+                elif chave == 'mensalidade_plano':
+                    config[chave] = float(valor)
+                elif chave == 'incluir_mao_de_obra':
+                    config[chave] = valor.lower() == 'true'
+                else:
+                    config[chave] = valor
+            
+            # Garantir valores padrão se não existirem
+            default_config = {
+                'taxa_servicos': 50.0,
+                'mao_de_obra': 35.0,
+                'mensalidade_plano': 149.90,
+                'incluir_mao_de_obra': True
+            }
+            
+            for key, default_value in default_config.items():
+                if key not in config:
+                    config[key] = default_value
+            
+            return jsonify(config)
+        
+        else:  # POST - Salvar configurações
+            data = request.json
+            
+            # Mapeamento de campos para chaves da tabela
+            field_mapping = {
+                'taxa_servicos': 'taxa_servicos_percentual',
+                'mao_de_obra': 'mao_obra_percentual',
+                'mensalidade_plano': 'mensalidade_plano',
+                'incluir_mao_de_obra': 'incluir_mao_de_obra'
+            }
+            
+            # Atualizar cada configuração
+            for field, db_key in field_mapping.items():
+                if field in data:
+                    valor = str(data[field])
+                    
+                    # Verificar se a configuração já existe
+                    existing = supabase.table('configuracoes').select('id').eq('chave', db_key).execute()
+                    
+                    if existing.data:
+                        # Atualizar configuração existente
+                        supabase.table('configuracoes').update({
+                            'valor': valor,
+                            'updated_at': datetime.now().isoformat()
+                        }).eq('chave', db_key).execute()
+                    else:
+                        # Criar nova configuração
+                        supabase.table('configuracoes').insert({
+                            'chave': db_key,
+                            'valor': valor,
+                            'tipo': 'number' if field != 'incluir_mao_de_obra' else 'boolean',
+                            'categoria': 'orcamento',
+                            'created_at': datetime.now().isoformat(),
+                            'updated_at': datetime.now().isoformat()
+                        }).execute()
+            
+            return jsonify({'success': True, 'message': 'Configurações salvas com sucesso'}), 200
+            
+    except Exception as e:
+        print(f"Erro ao processar configurações: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/contatos/stats', methods=['GET'])
 @admin_required
 def api_contatos_stats():
@@ -773,10 +894,10 @@ def api_orcamentos():
     try:
         if not supabase:
             return jsonify({'error': 'Supabase não configurado'}), 500
-            
         if request.method == 'GET':
             # Parâmetros para filtro e paginação
             status = request.args.get('status')
+            cliente_nome = request.args.get('cliente_nome')
             page = int(request.args.get('page', 1))
             per_page = int(request.args.get('per_page', 20))
             sort_by = request.args.get('sort_by', 'created_at')
@@ -785,9 +906,11 @@ def api_orcamentos():
             # Iniciar a query
             query = supabase.table('orcamentos').select('*')
             
-            # Aplicar filtro por status se fornecido
+            # Aplicar filtros
             if status:
                 query = query.eq('status', status)
+            if cliente_nome:
+                query = query.ilike('cliente_nome', f'%{cliente_nome}%')
             
             # Aplicar ordenação
             query = query.order(sort_by, desc=sort_desc)
@@ -803,6 +926,8 @@ def api_orcamentos():
             count_query = supabase.table('orcamentos').select('id', count='exact')
             if status:
                 count_query = count_query.eq('status', status)
+            if cliente_nome:
+                count_query = count_query.ilike('cliente_nome', f'%{cliente_nome}%')
             count_response = count_query.execute()
             
             total = count_response.count if hasattr(count_response, 'count') else len(response.data)
@@ -1014,6 +1139,49 @@ def setup_database():
         """
         supabase.sql(rls_orcamentos).execute()
         
+        # Verificar se a tabela configuracoes existe
+        try:
+            supabase.from_('configuracoes').select('id').limit(1).execute()
+            print("Tabela configuracoes já existe")
+        except:
+            # Se der erro é porque a tabela não existe, então criamos
+            create_configuracoes = """
+            CREATE TABLE IF NOT EXISTS configuracoes (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                taxa_servicos NUMERIC(5,2) DEFAULT 50.0,
+                mao_de_obra NUMERIC(5,2) DEFAULT 35.0,
+                margem_equipamentos NUMERIC(5,2) DEFAULT 30.0,
+                mensalidade_plano NUMERIC(10,2) DEFAULT 149.90,
+                periodo_amortizacao INTEGER DEFAULT 24,
+                custo_vm NUMERIC(10,2) DEFAULT 12.50,
+                incluir_mao_de_obra BOOLEAN DEFAULT true,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
+            """
+            supabase.sql(create_configuracoes).execute()
+            print("Criada tabela configuracoes")
+            
+            # Inserir configuração padrão
+            default_config = """
+            INSERT INTO configuracoes (taxa_servicos, mao_de_obra, margem_equipamentos, mensalidade_plano, periodo_amortizacao, custo_vm, incluir_mao_de_obra)
+            VALUES (50.0, 35.0, 30.0, 149.90, 24, 12.50, true);
+            """
+            supabase.sql(default_config).execute()
+            print("Inserida configuração padrão")
+        
+        # Configurar RLS para tabela configuracoes
+        rls_configuracoes = """
+        ALTER TABLE configuracoes DISABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admin can manage configuracoes" ON configuracoes;
+        CREATE POLICY "Admin can manage configuracoes" 
+        ON configuracoes
+        TO authenticated
+        USING (true);
+        ALTER TABLE configuracoes ENABLE ROW LEVEL SECURITY;
+        """
+        supabase.sql(rls_configuracoes).execute()
+        
         return jsonify({
             'status': 'success',
             'message': 'Configuração do banco de dados concluída com sucesso.'
@@ -1159,7 +1327,6 @@ def add_impostos_columns():
             'status': 'error',
             'message': f'Erro ao executar script: {str(e)}'
         }), 500
-
 
 
 if __name__ == '__main__':

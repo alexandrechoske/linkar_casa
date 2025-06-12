@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkarCasa Admin - Configurações</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='medias/Logo Only - Fundo Transparente.png') }}">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#667eea',
+                        'secondary': '#764ba2'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">    <!-- Navigation -->
+    <nav class="bg-gradient-to-r from-primary to-secondary text-white p-4 shadow-lg">
+        <a href="{{ url_for('admin_dashboard') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('admin_products') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-boxes mr-2"></i> Produtos</a>
+        <a href="{{ url_for('admin_quotation') }}" class="hover:bg-white/20 px-4 py-2 rounded transition mr-4"><i class="fas fa-file-invoice mr-2"></i> Orçamento</a>
+        <a href="{{ url_for('admin_settings') }}" class="bg-white/30 px-4 py-2 rounded transition mr-4 font-bold"><i class="fas fa-cog mr-2"></i> Configurações</a>
+        
+        <div class="ml-auto flex items-center">
+            {% if session.admin_user %}
+            <span class="bg-white/10 px-3 py-1 rounded-full mr-3 text-sm">
+                <i class="fas fa-user mr-1"></i> {{ session.admin_user.name }}
+            </span>
+            {% endif %}
+            <a href="{{ url_for('admin_logout') }}" class="hover:bg-red-500 px-4 py-2 rounded transition"><i class="fas fa-sign-out-alt mr-2"></i> Sair</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-cog text-primary mr-3"></i> Configurações do Sistema
+            </h1>
+            <p class="text-gray-600 mb-8">Configure as margens, percentuais e valores utilizados no sistema de orçamentos.</p>
+        </div>
+
+        <!-- Configurações de Margens -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Percentuais e Margens -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-percentage text-primary mr-2"></i> Percentuais e Margens
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- Taxa de Serviços -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Taxa de Serviços (%)
+                            <span class="text-gray-500 text-xs block">Criação da aplicação, ajustes e configurações</span>
+                        </label>
+                        <div class="flex items-center">
+                            <input type="number" id="taxaServicos" value="50" min="0" max="100" step="0.1" 
+                                class="w-24 border border-gray-300 rounded-lg px-3 py-2 focus:border-primary focus:ring focus:ring-primary/20">
+                            <span class="ml-2 text-gray-600">%</span>
+                        </div>
+                    </div>                    <!-- Mão de Obra -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Mão de Obra Instalação (%)
+                            <span class="text-gray-500 text-xs block">Instalação dos dispositivos físicos</span>
+                        </label>
+                        <div class="flex items-center">
+                            <input type="number" id="maoDeObra" value="35" min="0" max="100" step="0.1" 
+                                class="w-24 border border-gray-300 rounded-lg px-3 py-2 focus:border-primary focus:ring focus:ring-primary/20">
+                            <span class="ml-2 text-gray-600">%</span>
+                        </div>
+                    </div>
+
+                    <!-- Incluir Mão de Obra por Padrão -->
+                    <div>
+                        <label class="flex items-center text-sm font-medium text-gray-700">
+                            <input type="checkbox" id="incluirMaoObra" checked 
+                                class="mr-2 rounded border-gray-300 text-primary focus:ring-primary">
+                            Incluir Mão de Obra por Padrão nos Orçamentos
+                            <span class="text-gray-500 text-xs block ml-6">Marcar automaticamente a opção de mão de obra em novos orçamentos</span>
+                        </label>
+                    </div>
+                </div>
+            </div>            <!-- Valores Fixos -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-dollar-sign text-primary mr-2"></i> Valores Fixos
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- Mensalidade do Plano -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Mensalidade do Plano (R$)
+                            <span class="text-gray-500 text-xs block">Valor fixo mensal do plano com suporte</span>
+                        </label>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 mr-2">R$</span>
+                            <input type="number" id="mensalidadePlano" value="149.90" min="0" step="0.01" 
+                                class="w-32 border border-gray-300 rounded-lg px-3 py-2 focus:border-primary focus:ring focus:ring-primary/20">
+                        </div>
+                    </div>
+
+                    <!-- Informação sobre configurações avançadas -->
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    <strong>Configurações Essenciais:</strong> Estes são os parâmetros principais para cálculo de orçamentos. 
+                                    Para configurações adicionais de empresa e outros parâmetros, eles podem ser adicionados conforme necessário.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulador de Orçamento -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-calculator text-primary mr-2"></i> Simulador de Orçamento
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Entrada -->
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-4">Valores de Entrada</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Valor Total dos Produtos (R$)</label>
+                            <input type="number" id="simularProdutos" value="500.00" min="0" step="0.01" 
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-primary focus:ring focus:ring-primary/20"
+                                oninput="calcularSimulacao()">
+                        </div>
+                        <div>
+                            <label class="flex items-center text-sm font-medium text-gray-700">
+                                <input type="checkbox" id="incluirMaoObra" checked onchange="calcularSimulacao()" 
+                                    class="mr-2 rounded border-gray-300 text-primary focus:ring-primary">
+                                Incluir Mão de Obra na Venda
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultado -->
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-4">Cálculo do Orçamento</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-2">
+                        <div class="flex justify-between">
+                            <span>Total dos Produtos:</span>
+                            <span class="font-medium" id="resultProdutos">R$ 500,00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Taxa de Serviços:</span>
+                            <span class="font-medium" id="resultServicos">R$ 250,00</span>
+                        </div>
+                        <div class="flex justify-between" id="linhaMaoObra">
+                            <span>Mão de Obra Instalação:</span>
+                            <span class="font-medium" id="resultMaoObra">R$ 175,00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Mensalidade Plano:</span>
+                            <span class="font-medium" id="resultMensalidade">R$ 149,90</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Total à Vista:</span>
+                            <span class="text-emerald-600" id="resultTotal">R$ 925,00</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>+ Mensalidade:</span>
+                            <span id="resultMensalidadeTotal">R$ 149,90/mês</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="flex justify-center gap-4 mt-8">
+            <button id="salvarConfiguracoes" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg flex items-center">
+                <i class="fas fa-save mr-2"></i> Salvar Configurações
+            </button>
+            <button id="resetarConfiguracoes" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg flex items-center">
+                <i class="fas fa-undo mr-2"></i> Restaurar Padrão
+            </button>
+        </div>
+
+        <!-- Notificação -->
+        <div id="notification" class="fixed bottom-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20 opacity-0 flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="notificationText">Configurações salvas com sucesso!</span>
+        </div>
+    </div>    <script>        // Carregar configurações do servidor
+        async function carregarConfiguracoes() {
+            try {
+                const response = await fetch('/api/configuracoes');
+                if (response.ok) {
+                    const config = await response.json();
+                    
+                    // Aplicar valores aos campos
+                    document.getElementById('taxaServicos').value = config.taxa_servicos || 50;
+                    document.getElementById('maoDeObra').value = config.mao_de_obra || 35;
+                    document.getElementById('mensalidadePlano').value = config.mensalidade_plano || 149.90;
+                    document.getElementById('incluirMaoObra').checked = config.incluir_mao_de_obra !== false;
+                    
+                    // Também salvar no localStorage como backup
+                    localStorage.setItem('linkar_config', JSON.stringify(config));
+                } else {
+                    console.error('Erro ao carregar configurações');
+                    // Fallback para localStorage
+                    carregarConfiguracaoesLocal();
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                // Fallback para localStorage
+                carregarConfiguracaoesLocal();
+            }
+            
+            calcularSimulacao();
+        }
+
+        // Fallback para carregar do localStorage
+        function carregarConfiguracaoesLocal() {
+            const config = JSON.parse(localStorage.getItem('linkar_config') || '{}');
+            
+            document.getElementById('taxaServicos').value = config.taxa_servicos || 50;
+            document.getElementById('maoDeObra').value = config.mao_de_obra || 35;
+            document.getElementById('mensalidadePlano').value = config.mensalidade_plano || 149.90;
+            document.getElementById('incluirMaoObra').checked = config.incluir_mao_de_obra !== false;
+        }
+
+        // Salvar configurações
+        async function salvarConfiguracoes() {
+            const config = {
+                taxa_servicos: parseFloat(document.getElementById('taxaServicos').value),
+                mao_de_obra: parseFloat(document.getElementById('maoDeObra').value),
+                mensalidade_plano: parseFloat(document.getElementById('mensalidadePlano').value),
+                incluir_mao_de_obra: document.getElementById('incluirMaoObra').checked
+            };
+            
+            // Salvar no localStorage primeiro
+            localStorage.setItem('linkar_config', JSON.stringify(config));
+            
+            try {
+                // Salvar no servidor
+                const response = await fetch('/api/configuracoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                if (response.ok) {
+                    showNotification('Configurações salvas com sucesso!', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(`Erro ao salvar: ${error.error || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Configurações salvas localmente. Verifique a conexão com o servidor.', 'warning');
+            }
+        }
+
+        // Restaurar configurações padrão
+        function resetarConfiguracoes() {
+            if (confirm('Tem certeza que deseja restaurar as configurações padrão?')) {
+                document.getElementById('taxaServicos').value = 50;
+                document.getElementById('maoDeObra').value = 35;
+                document.getElementById('mensalidadePlano').value = 149.90;
+                document.getElementById('incluirMaoObra').checked = true;
+                
+                localStorage.removeItem('linkar_config');
+                calcularSimulacao();
+                showNotification('Configurações restauradas para o padrão');
+            }
+        }
+
+        // Calcular simulação
+        function calcularSimulacao() {
+            const valorProdutos = parseFloat(document.getElementById('simularProdutos').value) || 0;
+            const incluirMaoObra = document.getElementById('incluirMaoObra').checked;
+            
+            const taxaServicos = parseFloat(document.getElementById('taxaServicos').value) / 100;
+            const percentualMaoObra = parseFloat(document.getElementById('maoDeObra').value) / 100;
+            const mensalidadePlano = parseFloat(document.getElementById('mensalidadePlano').value);
+            
+            const valorServicos = valorProdutos * taxaServicos;
+            const valorMaoObra = incluirMaoObra ? valorProdutos * percentualMaoObra : 0;
+            const totalVista = valorProdutos + valorServicos + valorMaoObra;
+            
+            document.getElementById('resultProdutos').textContent = `R$ ${valorProdutos.toFixed(2).replace('.', ',')}`;
+            document.getElementById('resultServicos').textContent = `R$ ${valorServicos.toFixed(2).replace('.', ',')}`;
+            document.getElementById('resultMaoObra').textContent = `R$ ${valorMaoObra.toFixed(2).replace('.', ',')}`;
+            document.getElementById('resultMensalidade').textContent = `R$ ${mensalidadePlano.toFixed(2).replace('.', ',')}`;
+            document.getElementById('resultTotal').textContent = `R$ ${totalVista.toFixed(2).replace('.', ',')}`;
+            document.getElementById('resultMensalidadeTotal').textContent = `R$ ${mensalidadePlano.toFixed(2).replace('.', ',')}/mês`;
+            
+            // Mostrar/ocultar linha mão de obra
+            document.getElementById('linhaMaoObra').style.display = incluirMaoObra ? 'flex' : 'none';
+        }
+
+        // Mostrar notificação
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notification.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500');
+            
+            switch(type) {
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500');
+                    break;
+                case 'info':
+                    notification.classList.add('bg-blue-500');
+                    break;
+                default:
+                    notification.classList.add('bg-green-500');
+            }
+            
+            notificationText.textContent = message;
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            notification.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 4000);
+        }
+
+        // Event listeners
+        document.getElementById('salvarConfiguracoes').addEventListener('click', salvarConfiguracoes);
+        document.getElementById('resetarConfiguracoes').addEventListener('click', resetarConfiguracoes);
+          // Event listeners para atualizar simulação em tempo real
+        ['taxaServicos', 'maoDeObra', 'mensalidadePlano'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calcularSimulacao);
+        });
+        
+        // Event listener para checkbox de mão de obra
+        document.getElementById('incluirMaoObra').addEventListener('change', calcularSimulacao);
+
+        // Carregar configurações ao inicializar
+        window.onload = function() {
+            carregarConfiguracoes();
+        };
+    </script>
+</body>
+</html>
