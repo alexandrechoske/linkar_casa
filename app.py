@@ -278,9 +278,8 @@ def api_quotation():
                     'mensalidade_plano': 149.90,
                     'incluir_mao_de_obra': True
                 }
-            
-            # Calcular totais
-            subtotal_produtos = sum(float(p.get('valor_brl', 0)) * p.get('quantidade', 1) for p in data.get('produtos', []))
+              # Calcular totais
+            subtotal_produtos = sum(float(p.get('valor_total', 0)) * p.get('quantidade', 1) for p in data.get('produtos', []))
             
             # Verificar se há horas de mão de obra definidas para cálculo personalizado
             has_mo_hours = any(p.get('mo_horas') for p in data.get('produtos', []))
@@ -365,10 +364,9 @@ def api_quotation_detail(quotation_id):
             # Atualizar orçamento
             data = request.json
             data['updated_at'] = datetime.now().isoformat()
-            
-            # Recalcular valores se necessário
+              # Recalcular valores se necessário
             if 'produtos' in data:
-                subtotal_produtos = sum(float(p.get('valor_brl', 0)) * p.get('quantidade', 1) for p in data.get('produtos', []))
+                subtotal_produtos = sum(float(p.get('valor_total', 0)) * p.get('quantidade', 1) for p in data.get('produtos', []))
                 has_mo_hours = any(p.get('mo_horas') for p in data.get('produtos', []))
                 has_install_hours = any(p.get('tempo_instalacao') for p in data.get('produtos', []))
                 
@@ -501,13 +499,12 @@ def api_products():
             # Adiciona timestamps
             payload['created_at'] = datetime.now().isoformat()
             payload['updated_at'] = datetime.now().isoformat()
-            
-            # Converte valores numéricos corretamente
-            if 'valor_brl' in payload:
+              # Converte valores numéricos corretamente
+            if 'valor_total' in payload:
                 try:
-                    payload['valor_brl'] = float(payload['valor_brl'])
+                    payload['valor_total'] = float(payload['valor_total'])
                 except (TypeError, ValueError):
-                    payload['valor_brl'] = 0
+                    payload['valor_total'] = 0
                     
             # Garante que campos numéricos sejam números válidos
             for field in ['mo_horas', 'tempo_instalacao']:
@@ -541,9 +538,8 @@ def api_product_detail(id):
             payload = request.json
             # Atualiza timestamp
             payload['updated_at'] = datetime.now().isoformat()
-            
-            # Garante que campos numéricos sejam números válidos
-            for field in ['valor_brl', 'mo_horas', 'tempo_instalacao']:
+              # Garante que campos numéricos sejam números válidos
+            for field in ['valor_total', 'mo_horas', 'tempo_instalacao']:
                 if field in payload and payload[field] == '':
                     payload[field] = None
                     

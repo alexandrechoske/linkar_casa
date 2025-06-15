@@ -133,16 +133,34 @@
                         <i class="fas fa-file-invoice text-secondary mr-2"></i> Orçamento
                         <span id="quotationCode" class="ml-auto text-sm font-normal text-gray-500"></span>
                     </h2>
-                    
-                    <!-- Informações do Cliente (quando vinculado a um contato) -->
-                    <div id="clientInfo" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 hidden">
-                        <h3 class="font-semibold text-blue-800 mb-2 flex items-center">
-                            <i class="fas fa-user mr-2"></i> Cliente
+                      <!-- Informações do Cliente -->
+                    <div id="clientInfo" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">                        <h3 class="font-semibold text-blue-800 mb-2 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-user mr-2"></i> Cliente
+                                <span id="contactLinkedBadge" class="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hidden">
+                                    <i class="fas fa-link mr-1"></i> Vinculado
+                                </span>
+                            </div>
+                            <button id="unlinkContactBtn" class="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-md hover:bg-red-200 hidden" onclick="unlinkContact()">
+                                <i class="fas fa-unlink mr-1"></i> Desvincular
+                            </button>
                         </h3>
                         <div class="grid grid-cols-1 gap-2 text-sm">
-                            <div><strong>Nome:</strong> <span id="clientName">-</span></div>
-                            <div><strong>Email:</strong> <span id="clientEmail">-</span></div>
-                            <div><strong>Telefone:</strong> <span id="clientPhone">-</span></div>
+                            <div>
+                                <label class="block text-sm font-medium text-blue-700 mb-1">Nome:</label>
+                                <input type="text" id="clientName" placeholder="Digite o nome do cliente..." 
+                                    class="w-full border border-blue-300 rounded px-2 py-1 focus:border-blue-500 focus:ring focus:ring-blue-200 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-blue-700 mb-1">Email:</label>
+                                <input type="email" id="clientEmail" placeholder="Digite o email do cliente..." 
+                                    class="w-full border border-blue-300 rounded px-2 py-1 focus:border-blue-500 focus:ring focus:ring-blue-200 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-blue-700 mb-1">Telefone:</label>
+                                <input type="tel" id="clientPhone" placeholder="Digite o telefone do cliente..." 
+                                    class="w-full border border-blue-300 rounded px-2 py-1 focus:border-blue-500 focus:ring focus:ring-blue-200 text-sm">
+                            </div>
                         </div>
                         <div class="mt-2 pt-2 border-t border-blue-200">
                             <label class="block text-sm font-medium text-blue-700 mb-1">Endereço:</label>
@@ -511,9 +529,8 @@
                                                 ${(quotation.produtos || []).map(produto => `
                                                     <tr>
                                                         <td class="px-4 py-3">${produto.nome_produto || 'Produto'}</td>
-                                                        <td class="px-4 py-3 text-center">${produto.quantidade || 1}</td>
-                                                        <td class="px-4 py-3 text-right">R$ ${(produto.valor_brl || 0).toFixed(2)}</td>
-                                                        <td class="px-4 py-3 text-right">R$ ${(produto.subtotal || (produto.valor_brl * produto.quantidade) || 0).toFixed(2)}</td>
+                                                        <td class="px-4 py-3 text-center">${produto.quantidade || 1}</td>                                                        <td class="px-4 py-3 text-right">R$ ${(produto.valor_total || 0).toFixed(2)}</td>
+                                                        <td class="px-4 py-3 text-right">R$ ${(produto.subtotal || (produto.valor_total * produto.quantidade) || 0).toFixed(2)}</td>
                                                     </tr>
                                                 `).join('')}
                                             </tbody>
@@ -688,9 +705,8 @@
                                     ${(quotation.produtos || []).map(produto => `
                                         <tr>
                                             <td>${produto.nome_produto || 'Produto'}</td>
-                                            <td>${produto.quantidade || 1}</td>
-                                            <td>R$ ${(produto.valor_brl || 0).toFixed(2)}</td>
-                                            <td>R$ ${(produto.subtotal || (produto.valor_brl * produto.quantidade) || 0).toFixed(2)}</td>
+                                            <td>${produto.quantidade || 1}</td>                                            <td>R$ ${(produto.valor_total || 0).toFixed(2)}</td>
+                                            <td>R$ ${(produto.subtotal || (produto.valor_total * produto.quantidade) || 0).toFixed(2)}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -813,11 +829,18 @@
                 document.getElementById('clientInfo').classList.remove('hidden');
                   // Ocultar botão "Novo Orçamento" quando há contato vinculado
                 document.getElementById('newQuotationBtn').style.display = 'none';
+                  // Preencher dados do cliente
+                document.getElementById('clientName').value = currentContact.nome;
+                document.getElementById('clientEmail').value = currentContact.email;
+                document.getElementById('clientPhone').value = currentContact.telefone;
+                  // Mostrar badge de contato vinculado
+                document.getElementById('contactLinkedBadge').classList.remove('hidden');
+                document.getElementById('unlinkContactBtn').classList.remove('hidden');
                 
-                // Preencher dados do cliente
-                document.getElementById('clientName').textContent = currentContact.nome;
-                document.getElementById('clientEmail').textContent = currentContact.email;
-                document.getElementById('clientPhone').textContent = currentContact.telefone;
+                // Marcar campos como readonly quando vinculado a contato
+                document.getElementById('clientName').readOnly = true;
+                document.getElementById('clientEmail').readOnly = true;
+                document.getElementById('clientPhone').readOnly = true;
                 
                 // Atualizar código do orçamento para incluir referência ao contato
                 quotationId = `Q-${currentContact.id.substring(0, 8)}-${new Date().getTime()}`;
@@ -967,7 +990,7 @@
                         </div>
                     </div>
                     <div class="mt-auto pt-2 flex items-center justify-between">
-                        <span class="font-bold text-emerald-600">R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</span>
+                        <span class="font-bold text-emerald-600">R$ ${parseFloat(p.valor_total || 0).toFixed(2)}</span>
                         <div class="flex items-center">
                             ${isInCart ? `
                                 <div class="flex items-center border border-primary rounded-md">
@@ -1039,11 +1062,10 @@
             let subtotal = 0;
             let totalMoHours = 0;
             let totalInstallHours = 0;
-            
-            cartItems.forEach(id => {
+              cartItems.forEach(id => {
                 const p = products.find(x => x.id === id);
                 const qty = cart[id];
-                const unitValue = parseFloat(p.valor_brl || 0);
+                const unitValue = parseFloat(p.valor_total || 0);
                 const subtotalValue = unitValue * qty;
                 
                 // Acumular valores para cálculos
@@ -1200,10 +1222,9 @@
                 const clientNameElement = document.getElementById('clientName');
                 const clientEmailElement = document.getElementById('clientEmail');
                 const clientPhoneElement = document.getElementById('clientPhone');
-                
-                if (clientNameElement && clientNameElement.textContent && clientNameElement.textContent !== '-') {
-                    clientName = clientNameElement.textContent;
-                    clientContact = `${clientEmailElement && clientEmailElement.textContent !== '-' ? clientEmailElement.textContent : ''} ${clientPhoneElement && clientPhoneElement.textContent !== '-' ? '| ' + clientPhoneElement.textContent : ''}`.trim();
+                  if (clientNameElement && clientNameElement.value && clientNameElement.value.trim() !== '') {
+                    clientName = clientNameElement.value.trim();
+                    clientContact = `${clientEmailElement && clientEmailElement.value ? clientEmailElement.value : ''} ${clientPhoneElement && clientPhoneElement.value ? '| ' + clientPhoneElement.value : ''}`.trim();
                     clientAddress = document.getElementById('clientAddress') ? document.getElementById('clientAddress').value : '';
                     console.log('Debug PDF - Usando dados da interface:', clientName);
                 } else {
@@ -1334,12 +1355,11 @@
                         </thead>
                         <tbody>
             `;
-            
-            // Produtos no orçamento
+              // Produtos no orçamento
             Object.keys(cart).forEach(id => {
                 const p = products.find(x => x.id === id);
                 const qty = cart[id];
-                const unitValue = parseFloat(p.valor_brl || 0);
+                const unitValue = parseFloat(p.valor_total || 0);
                 const subtotalValue = unitValue * qty;
                 
                 html += `
@@ -1456,37 +1476,49 @@
                 }
             } else {
                 showNotification('Orçamento já está vazio', 'info');
-            }
-        });// Botão para salvar orçamento
+            }        });
+
+        // Botão para salvar orçamento
         document.getElementById('saveQuotationBtn').addEventListener('click', async function() {
             if (Object.keys(cart).length === 0) {
                 showNotification('Adicione produtos ao orçamento primeiro', 'warning');
                 return;
-            }            // Verificar se há contato vinculado
-            if (!currentContact) {
-                showNotification('Erro: Este orçamento deve estar vinculado a um contato', 'error');
-                return;
             }
             
-            // Orçamento vinculado a um contato
-            const clientName = currentContact.nome;
-            const clientEmail = currentContact.email;
-            const clientPhone = currentContact.telefone;
-            const clientAddress = document.getElementById('clientAddress').value || '';
+            // Determinar dados do cliente (contato vinculado ou manual)
+            let clientName, clientEmail, clientPhone, clientAddress;
+            
+            if (currentContact) {
+                // Orçamento vinculado a um contato
+                clientName = currentContact.nome;
+                clientEmail = currentContact.email;
+                clientPhone = currentContact.telefone;
+                clientAddress = document.getElementById('clientAddress').value || '';
+            } else {                // Orçamento manual - usar dados inseridos pelo usuário
+                clientName = document.getElementById('clientName').value.trim();
+                clientEmail = document.getElementById('clientEmail').value.trim();
+                clientPhone = document.getElementById('clientPhone').value.trim();
+                clientAddress = document.getElementById('clientAddress').value || '';
+                
+                if (!clientName) {
+                    showNotification('Nome do cliente é obrigatório', 'error');
+                    document.getElementById('clientName').focus();
+                    return;
+                }
+            }
             
             // Preparar os dados do orçamento
-            const produtosOrdem = [];
-            Object.keys(cart).forEach(id => {
+            const produtosOrdem = [];            Object.keys(cart).forEach(id => {
                 const product = products.find(p => p.id === id);
                 produtosOrdem.push({
                     id: product.id,
                     nome_produto: product.nome_produto,
                     categoria: product.categoria,
-                    valor_brl: product.valor_brl,
+                    valor_total: product.valor_total,
                     mo_horas: product.mo_horas,
                     tempo_instalacao: product.tempo_instalacao,
                     quantidade: cart[id],
-                    subtotal: parseFloat(product.valor_brl) * cart[id]
+                    subtotal: parseFloat(product.valor_total) * cart[id]
                 });
             });
             
@@ -1768,32 +1800,38 @@
             
             try {
                 let clientName, clientEmail, clientPhone, clientAddress;
-                
-                if (currentContact) {
+                  if (currentContact) {
                     // Orçamento vinculado a um contato
                     clientName = currentContact.nome;
                     clientEmail = currentContact.email;
                     clientPhone = currentContact.telefone;
+                    clientAddress = document.getElementById('clientAddress').value || '';                } else {
+                    // Orçamento manual - usar dados inseridos pelo usuário
+                    clientName = document.getElementById('clientName').value.trim();
+                    clientEmail = document.getElementById('clientEmail').value.trim();
+                    clientPhone = document.getElementById('clientPhone').value.trim();
                     clientAddress = document.getElementById('clientAddress').value || '';
-                } else {
-                    showNotification('Este orçamento deve estar vinculado a um contato', 'warning');
-                    return;
+                    
+                    if (!clientName) {
+                        showNotification('Nome do cliente é obrigatório', 'error');
+                        document.getElementById('clientName').focus();
+                        return;
+                    }
                 }
                 
                 // Preparar dados do orçamento
-                const produtosOrdem = [];
-                Object.keys(cart).forEach(id => {
+                const produtosOrdem = [];                Object.keys(cart).forEach(id => {
                     const product = products.find(p => p.id === id);
                     produtosOrdem.push({
                         id: product.id,
                         nome_produto: product.nome_produto,
                         categoria: product.categoria,
-                        valor_brl: product.valor_brl,
+                        valor_total: product.valor_total,
                         mo_horas: product.mo_horas,
                         tempo_instalacao: product.tempo_instalacao,
                         quantidade: cart[id],
-                        subtotal: parseFloat(product.valor_brl) * cart[id]
-                    });                });
+                        subtotal: parseFloat(product.valor_total) * cart[id]
+                    });});
                 
                 const subtotal = parseFloat(document.getElementById('subtotal').innerText.replace(',', '.'));
                 const taxaServicos = parseFloat(document.getElementById('taxa_servicos').innerText.replace(',', '.'));
@@ -1854,6 +1892,30 @@
             } catch (error) {
                 console.error('Erro ao salvar orçamento:', error);
                 showNotification('Erro ao salvar orçamento: ' + error.message, 'error');
+            }
+        }
+        
+        // Função para desvincular contato do orçamento
+        function unlinkContact() {
+            if (confirm('Tem certeza que deseja desvincular este contato? Os dados permanecerão no orçamento, mas ele não ficará mais vinculado ao contato.')) {
+                // Limpar variáveis de contato
+                currentContact = null;
+                contactId = null;
+                
+                // Ocultar badge e botão de desvincular
+                document.getElementById('contactLinkedBadge').classList.add('hidden');
+                document.getElementById('unlinkContactBtn').classList.add('hidden');
+                
+                // Remover readonly dos campos para permitir edição
+                document.getElementById('clientName').readOnly = false;
+                document.getElementById('clientEmail').readOnly = false;
+                document.getElementById('clientPhone').readOnly = false;
+                
+                // Gerar novo código de orçamento
+                quotationId = 'Q-' + new Date().getTime();
+                document.getElementById('quotationCode').textContent = `#${quotationId}`;
+                
+                showNotification('Contato desvinculado. Os dados do cliente agora podem ser editados manualmente.', 'info');
             }
         }
     </script>
