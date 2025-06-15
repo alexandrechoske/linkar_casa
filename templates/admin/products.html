@@ -22,8 +22,7 @@
                 }
             }
         }
-    </script>
-    <style>
+    </script>    <style>
         .animate-fade-in {
             animation: fadeIn 0.3s ease-in-out;
         }
@@ -37,6 +36,44 @@
         @keyframes slideUp {
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Estilos para agrupamentos expansíveis */
+        .group-section {
+            transition: all 0.3s ease;
+        }
+        
+        .group-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .group-content.collapsed {
+            max-height: 0;
+            padding: 0 1rem;
+        }
+          /* Estilo para linha única de texto */
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Responsividade melhorada */
+        @media (max-width: 768px) {
+            .grid-responsive {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -224,10 +261,77 @@
                         <i class="fas fa-clock text-amber-500"></i>
                     </div>
                 </div>
+            </div>        </div>
+        
+        <!-- Filtros e Controles -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-filter text-primary mr-2"></i> Filtros e Visualização
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                <!-- Busca por Nome -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                    <input type="text" id="searchInput" placeholder="Nome do produto..." 
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-primary/20">
+                </div>
+                
+                <!-- Filtro por Categoria -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                    <select id="categoryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-primary/20">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Classe -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Classe</label>
+                    <select id="classeFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-primary/20">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Tipo -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <select id="tipoFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-primary/20">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                
+                <!-- Modo de Visualização -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Visualização</label>
+                    <div class="flex gap-2">
+                        <button id="viewList" class="flex-1 bg-primary text-white px-3 py-2 rounded-lg text-sm hover:bg-primary/90 transition" title="Lista">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button id="viewGrid" class="flex-1 bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-400 transition" title="Grade">
+                            <i class="fas fa-th"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Opções de Agrupamento -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="groupByType" checked class="mr-2 text-primary focus:ring-primary">
+                        <span class="text-sm text-gray-700">Agrupar por Tipo</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="groupByCategory" class="mr-2 text-primary focus:ring-primary">
+                        <span class="text-sm text-gray-700">Agrupar por Categoria</span>
+                    </label>
+                </div>
+                <span class="text-sm text-gray-500" id="productCount">0 produtos encontrados</span>
             </div>
         </div>
         
-        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        <div id="gallery" class="space-y-4"></div>
         
         <!-- Mensagem de notificação -->
         <div id="notification" class="fixed bottom-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20 opacity-0 flex items-center">
@@ -309,96 +413,306 @@
                 return [];
             }
         }
+          // Variáveis de controle de visualização
+        let currentView = 'list'; // 'list' ou 'grid'
         
-        function renderGallery(items) {            const g = document.getElementById('gallery'); 
-            g.innerHTML='';
+        function renderGallery(items) {
+            const g = document.getElementById('gallery');
+            g.innerHTML = '';
             
-            if(items.length===0) { 
-                g.innerHTML='<div class="col-span-full py-10 text-center"><div class="text-gray-400 text-6xl mb-4"><i class="fas fa-box-open"></i></div><p class="text-gray-500 text-xl">Nenhum produto encontrado.</p></div>'; 
-                return; 
+            // Atualizar contador
+            document.getElementById('productCount').textContent = `${items.length} produtos encontrados`;
+            
+            if (items.length === 0) {
+                g.innerHTML = `
+                    <div class="col-span-full py-16 text-center">
+                        <div class="text-gray-400 text-6xl mb-4">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <p class="text-gray-500 text-xl">Nenhum produto encontrado.</p>
+                        <p class="text-gray-400 text-sm mt-2">Tente ajustar os filtros ou adicionar novos produtos.</p>
+                    </div>
+                `;
+                return;
             }
             
-            // Agrupar por categoria
-            const groupedItems = items.reduce((acc, item) => {
-                const category = item.categoria || 'Sem categoria';
-                if (!acc[category]) acc[category] = [];
-                acc[category].push(item);
+            // Determinar agrupamento
+            const groupByType = document.getElementById('groupByType')?.checked;
+            const groupByCategory = document.getElementById('groupByCategory')?.checked;
+            
+            if (groupByType) {
+                renderProductsGrouped(items, g, 'tipo');
+            } else if (groupByCategory) {
+                renderProductsGrouped(items, g, 'categoria');
+            } else {
+                renderProductsFlat(items, g);
+            }
+        }
+        
+        function renderProductsFlat(items, container) {
+            const wrapper = document.createElement('div');
+            wrapper.className = currentView === 'list' ? 'space-y-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+            
+            items.forEach(product => {
+                wrapper.appendChild(createProductElement(product));
+            });
+            
+            container.appendChild(wrapper);
+        }
+        
+        function renderProductsGrouped(items, container, groupField) {
+            // Agrupar itens
+            const groups = items.reduce((acc, item) => {
+                const key = item[groupField] || `Sem ${groupField === 'tipo' ? 'tipo' : 'categoria'}`;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(item);
                 return acc;
             }, {});
             
-            // Renderizar por categoria
-            Object.keys(groupedItems).sort().forEach(category => {
-                // Cabeçalho da categoria
-                const header = document.createElement('div');
-                header.className = 'col-span-full mt-6 mb-2 border-b border-gray-200 pb-2 flex items-center justify-between';
-                header.innerHTML = `
-                    <div class="flex items-center">
-                        <h3 class="text-xl font-bold text-primary">${category}</h3>
-                        <span class="ml-3 bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full">${groupedItems[category].length} produtos</span>
-                    </div>
-                `;
-                g.appendChild(header);
-                
-                // Produtos da categoria
-                groupedItems[category].forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'bg-white rounded-lg overflow-hidden shadow hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col';
-                      // Preparar as badges para informações extras
-                    let classeInfo = p.classe ? `<span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">${p.classe}</span>` : '';
-                    let protocoloInfo = p.protocolo ? `<span class="bg-secondary/10 text-secondary text-xs px-2 py-1 rounded-full">${p.protocolo}</span>` : '';
-                    
-                    div.innerHTML = `
-                        <div class="relative">
-                            <img src='${p.imagem_produto || "https://via.placeholder.com/300"}' class='w-full h-48 object-cover' alt="${p.nome_produto}">
-                            <div class="absolute top-2 right-2 flex flex-col gap-2 items-end">
-                                ${classeInfo}
-                            </div>
-                        </div>
-                        <div class="p-4 flex-1 flex flex-col">
-                            <h4 class='text-lg font-semibold mb-1 flex-grow-0 line-clamp-1'>${p.nome_produto}</h4>
-                            <p class='text-gray-500 text-sm mb-3 flex-grow line-clamp-2'>${p.descricao || 'Sem descrição'}</p>
-                            
-                            <div class="flex flex-wrap gap-1 mb-3">
-                                ${protocoloInfo}
-                            </div>
-                              <div class="flex items-center justify-between mt-auto">
-                                <div class="text-right">
-                                    ${p.valor_total && p.valor_total !== p.valor_brl ? 
-                                        `<p class='text-gray-500 text-sm line-through'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>
-                                         <p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_total || 0).toFixed(2)}</p>` :
-                                        `<p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>`
-                                    }
-                                </div>
-                                <div class="flex gap-1">
-                                    <button onclick='onEdit("${p.id}")' class='text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-full transition'>
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button onclick='onDelete("${p.id}")' class='text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition'>
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    g.appendChild(div);
-                });
+            // Renderizar grupos
+            Object.keys(groups).sort().forEach(groupName => {
+                const groupSection = createGroupSection(groupName, groups[groupName]);
+                container.appendChild(groupSection);
             });
         }
-        function populateCategoryFilter(items) {
-            const select = document.getElementById('categoryFilter');
-            const cats = [...new Set(items.map(p=>p.categoria).filter(Boolean))];
-            cats.forEach(c=>{
-                const opt = document.createElement('option'); opt.value=c; opt.textContent=c; select.appendChild(opt);
+        
+        function createGroupSection(groupName, products) {
+            const section = document.createElement('div');
+            section.className = 'bg-white rounded-lg shadow-sm border border-gray-200 mb-4';
+            
+            const header = document.createElement('div');
+            header.className = 'flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition';
+            header.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-down transition-transform mr-3 text-gray-400" id="chevron-${groupName.replace(/\s+/g, '-')}"></i>
+                    <h3 class="text-lg font-semibold text-gray-800">${groupName}</h3>
+                    <span class="ml-3 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">${products.length} produtos</span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Clique para expandir/recolher
+                </div>
+            `;
+            
+            const content = document.createElement('div');
+            content.className = currentView === 'list' ? 'p-4 space-y-2' : 'p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+            content.id = `content-${groupName.replace(/\s+/g, '-')}`;
+            
+            products.forEach(product => {
+                content.appendChild(createProductElement(product));
             });
-            select.onchange = ()=>{
-                const sel = select.value;
-                const filtered = sel? allProducts.filter(p=>p.categoria===sel) : allProducts;
-                renderGallery(filtered);
-            };
+            
+            // Adicionar evento de toggle
+            header.addEventListener('click', () => {
+                const chevron = header.querySelector('i');
+                const isVisible = content.style.display !== 'none';
+                
+                content.style.display = isVisible ? 'none' : '';
+                chevron.style.transform = isVisible ? 'rotate(-90deg)' : 'rotate(0deg)';
+            });
+            
+            section.appendChild(header);
+            section.appendChild(content);
+            
+            return section;
+        }
+        
+        function createProductElement(product) {
+            const element = document.createElement('div');
+            
+            if (currentView === 'list') {
+                element.className = 'bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition flex items-center gap-4';
+                element.innerHTML = createListItemHTML(product);
+            } else {
+                element.className = 'bg-white rounded-lg overflow-hidden shadow hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col';
+                element.innerHTML = createGridItemHTML(product);
+            }
+            
+            return element;
+        }
+        
+        function createListItemHTML(p) {
+            const classeInfo = p.classe ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${p.classe}</span>` : '';
+            const tipoInfo = p.tipo ? `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">${p.tipo}</span>` : '';
+            const protocoloInfo = p.protocolo ? `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">${p.protocolo}</span>` : '';
+            
+            return `
+                <div class="flex-shrink-0">
+                    <img src="${p.imagem_produto || 'https://via.placeholder.com/80'}" 
+                         class="w-20 h-20 object-cover rounded-lg" alt="${p.nome_produto}">
+                </div>
+                <div class="flex-grow">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">${p.nome_produto}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${p.categoria || 'Sem categoria'}</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                ${classeInfo}
+                                ${tipoInfo}
+                                ${protocoloInfo}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            ${p.valor_total && p.valor_total !== p.valor_brl ? 
+                                `<p class='text-gray-500 text-sm line-through'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>
+                                 <p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_total || 0).toFixed(2)}</p>` :
+                                `<p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>`
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    ${p.link && p.link.trim() ? 
+                        `<button onclick="openProductLink('${p.link.replace(/'/g, "\\'")}');" class='text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-full transition' title='Abrir link do produto'>
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>` : ''
+                    }
+                    <button onclick='onEdit("${p.id}")' class='text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-full transition' title='Editar produto'>
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick='onDelete("${p.id}")' class='text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition' title='Excluir produto'>
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }
+        
+        function createGridItemHTML(p) {
+            const classeInfo = p.classe ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${p.classe}</span>` : '';
+            const tipoInfo = p.tipo ? `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">${p.tipo}</span>` : '';
+            const protocoloInfo = p.protocolo ? `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">${p.protocolo}</span>` : '';
+            
+            return `
+                <div class="relative">
+                    <img src='${p.imagem_produto || "https://via.placeholder.com/300"}' class='w-full h-32 object-cover' alt="${p.nome_produto}">
+                    <div class="absolute top-2 right-2">
+                        <span class="bg-white/90 text-gray-700 text-xs px-2 py-1 rounded-full backdrop-blur-sm">${p.categoria || 'Sem categoria'}</span>
+                    </div>
+                </div>
+                <div class="p-4 flex-grow flex flex-col">
+                    <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${p.nome_produto}</h3>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        ${classeInfo}
+                        ${tipoInfo}
+                        ${protocoloInfo}
+                    </div>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="text-right">
+                            ${p.valor_total && p.valor_total !== p.valor_brl ? 
+                                `<p class='text-gray-500 text-sm line-through'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>
+                                 <p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_total || 0).toFixed(2)}</p>` :
+                                `<p class='text-emerald-600 font-bold text-lg'>R$ ${parseFloat(p.valor_brl || 0).toFixed(2)}</p>`
+                            }
+                        </div>
+                        <div class="flex gap-1">
+                            ${p.link && p.link.trim() ? 
+                                `<button onclick="openProductLink('${p.link.replace(/'/g, "\\'")}');" class='text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-full transition' title='Abrir link do produto'>
+                                    <i class="fas fa-external-link-alt"></i>
+                                </button>` : ''
+                            }
+                            <button onclick='onEdit("${p.id}")' class='text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-full transition' title='Editar produto'>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick='onDelete("${p.id}")' class='text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition' title='Excluir produto'>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }        function populateFilters(items) {
+            // Popular filtro de categoria
+            const categorySelect = document.getElementById('categoryFilter');
+            const categories = [...new Set(items.map(p => p.categoria).filter(Boolean))];
+            categorySelect.innerHTML = '<option value="">Todas</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                categorySelect.appendChild(opt);
+            });
+            
+            // Popular filtro de classe
+            const classeSelect = document.getElementById('classeFilter');
+            const classes = [...new Set(items.map(p => p.classe).filter(Boolean))];
+            classeSelect.innerHTML = '<option value="">Todas</option>';
+            classes.forEach(classe => {
+                const opt = document.createElement('option');
+                opt.value = classe;
+                opt.textContent = classe;
+                classeSelect.appendChild(opt);
+            });
+            
+            // Popular filtro de tipo
+            const tipoSelect = document.getElementById('tipoFilter');
+            const tipos = [...new Set(items.map(p => p.tipo).filter(Boolean))];
+            tipoSelect.innerHTML = '<option value="">Todos</option>';
+            tipos.forEach(tipo => {
+                const opt = document.createElement('option');
+                opt.value = tipo;
+                opt.textContent = tipo;
+                tipoSelect.appendChild(opt);
+            });
+        }
+        
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const classeFilter = document.getElementById('classeFilter').value;
+            const tipoFilter = document.getElementById('tipoFilter').value;
+            
+            let filtered = allProducts.filter(product => {
+                const matchesSearch = !searchTerm || product.nome_produto.toLowerCase().includes(searchTerm);
+                const matchesCategory = !categoryFilter || product.categoria === categoryFilter;
+                const matchesClasse = !classeFilter || product.classe === classeFilter;
+                const matchesTipo = !tipoFilter || product.tipo === tipoFilter;
+                
+                return matchesSearch && matchesCategory && matchesClasse && matchesTipo;
+            });
+            
+            renderGallery(filtered);
+        }
+        
+        function setupEventListeners() {
+            // Event listeners para filtros
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('classeFilter').addEventListener('change', applyFilters);
+            document.getElementById('tipoFilter').addEventListener('change', applyFilters);
+            
+            // Event listeners para agrupamento
+            document.getElementById('groupByType').addEventListener('change', () => {
+                if (document.getElementById('groupByType').checked) {
+                    document.getElementById('groupByCategory').checked = false;
+                }
+                applyFilters();
+            });
+            
+            document.getElementById('groupByCategory').addEventListener('change', () => {
+                if (document.getElementById('groupByCategory').checked) {
+                    document.getElementById('groupByType').checked = false;
+                }
+                applyFilters();
+            });
+            
+            // Event listeners para mudança de visualização
+            document.getElementById('viewList').addEventListener('click', () => {
+                currentView = 'list';
+                document.getElementById('viewList').className = 'flex-1 bg-primary text-white px-3 py-2 rounded-lg text-sm hover:bg-primary/90 transition';
+                document.getElementById('viewGrid').className = 'flex-1 bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-400 transition';
+                applyFilters();
+            });
+            
+            document.getElementById('viewGrid').addEventListener('click', () => {
+                currentView = 'grid';
+                document.getElementById('viewGrid').className = 'flex-1 bg-primary text-white px-3 py-2 rounded-lg text-sm hover:bg-primary/90 transition';
+                document.getElementById('viewList').className = 'flex-1 bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-400 transition';
+                applyFilters();
+            });
         }        async function load() { 
             try {
                 allProducts = await fetchProducts();
-                populateCategoryFilter(allProducts);
+                populateFilters(allProducts);
+                setupEventListeners();
                 renderGallery(allProducts);
             } catch (error) {
                 console.error('Erro ao carregar produtos:', error);
@@ -549,9 +863,32 @@
                 }
             } catch (error) {
                 console.error('Erro ao excluir produto:', error);
-                showNotification('Erro ao excluir produto', 'error');
+                showNotification('Erro ao excluir produto', 'error');            }
+        }
+        
+        // Função para abrir link do produto de forma segura
+        function openProductLink(url) {
+            try {
+                // Verificar se a URL é válida
+                if (!url || typeof url !== 'string' || url.trim() === '') {
+                    showNotification('Link do produto não está disponível', 'warning');
+                    return;
+                }
+                
+                // Adicionar protocolo se não existir
+                let finalUrl = url.trim();
+                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+                    finalUrl = 'https://' + finalUrl;
+                }
+                
+                // Abrir em nova aba
+                window.open(finalUrl, '_blank', 'noopener,noreferrer');
+            } catch (error) {
+                console.error('Erro ao abrir link do produto:', error);
+                showNotification('Erro ao abrir link do produto', 'error');
             }
         }
+        
         document.addEventListener('DOMContentLoaded', load);
     </script>
 </body>

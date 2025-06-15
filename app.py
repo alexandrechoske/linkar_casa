@@ -592,15 +592,14 @@ def api_configuracoes():
         if request.method == 'GET':
             # Buscar todas as configurações
             response = supabase.table('configuracoes').select('chave, valor').execute()
-            
-            # Converter para formato de objeto
+              # Converter para formato de objeto
             config = {}
             for item in response.data:
                 chave = item['chave']
                 valor = item['valor']
                 
                 # Converter valores para os tipos corretos
-                if chave in ['taxa_servicos_percentual', 'mao_obra_percentual']:
+                if chave in ['taxa_servicos_percentual', 'mao_obra_percentual', 'desconto_vista_percentual']:
                     config[chave.replace('_percentual', '')] = float(valor)
                 elif chave == 'mensalidade_plano':
                     config[chave] = float(valor)
@@ -614,6 +613,7 @@ def api_configuracoes():
                 'taxa_servicos': 50.0,
                 'mao_de_obra': 35.0,
                 'mensalidade_plano': 149.90,
+                'desconto_vista': 5.0,
                 'incluir_mao_de_obra': True
             }
             
@@ -625,16 +625,15 @@ def api_configuracoes():
         
         else:  # POST - Salvar configurações
             data = request.json
-            
-            # Mapeamento de campos para chaves da tabela
+              # Mapeamento de campos para chaves da tabela
             field_mapping = {
                 'taxa_servicos': 'taxa_servicos_percentual',
                 'mao_de_obra': 'mao_obra_percentual',
                 'mensalidade_plano': 'mensalidade_plano',
+                'desconto_vista': 'desconto_vista_percentual',
                 'incluir_mao_de_obra': 'incluir_mao_de_obra'
             }
-            
-            # Atualizar cada configuração
+              # Atualizar cada configuração
             for field, db_key in field_mapping.items():
                 if field in data:
                     valor = str(data[field])
@@ -653,7 +652,7 @@ def api_configuracoes():
                         supabase.table('configuracoes').insert({
                             'chave': db_key,
                             'valor': valor,
-                            'tipo': 'number' if field != 'incluir_mao_de_obra' else 'boolean',
+                            'tipo': 'number' if field not in ['incluir_mao_de_obra'] else 'boolean',
                             'categoria': 'orcamento',
                             'created_at': datetime.now().isoformat(),
                             'updated_at': datetime.now().isoformat()
